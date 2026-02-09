@@ -101,7 +101,7 @@ def random_access_test(size_bytes, iterations, batch):
     """
     np.random.seed(0)
     size = size_bytes // 8
-    # Optimisation: on lit des 1 (ne change rien à la latence, mais init + rapide)
+
     arr = np.ones(size, dtype=np.uint64)
     
     stat = np.zeros(4, dtype=np.uint64)
@@ -162,7 +162,7 @@ def random_write_test(size_bytes, iterations, batch):
     t_start = time.perf_counter()
     for _ in range(iterations):
         idx = np.random.randint(0, size, batch)
-        #vals = np.random.rand(batch) # On écrit quand même du random pour le réalisme
+        #vals = np.random.rand(batch)
         vals = np.random.randint(0, 100, batch, dtype=np.uint64)
 
         t0 = time.perf_counter_ns()
