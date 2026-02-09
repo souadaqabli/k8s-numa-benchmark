@@ -137,7 +137,7 @@ def random_access_test(size_bytes, iterations, batch):
     # Conversions : Ici on divise par 'batch' car lat correspond à un lot de 'batch' accès
     avg_lat_iter = (stat[2] / iterations) * ratio
 
-    variance = (stat[3] / iterations) - (avg_lat_iter**2)
+    variance = (stat[3] / iterations) - ((stat[2] / iterations)**2)
     std = np.sqrt(max(0, variance))
     
     return ops_s , t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std
@@ -189,7 +189,7 @@ def random_write_test(size_bytes, iterations, batch):
     ratio = size / batch
     avg_lat_iter = (stat[2] / iterations) * ratio
 
-    variance = (stat[3] / iterations) - (avg_lat_iter**2)
+    variance = (stat[3] / iterations) - ((stat[2] / iterations)**2)
     std = np.sqrt(max(0, variance))
     
     return ops_s, t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std
