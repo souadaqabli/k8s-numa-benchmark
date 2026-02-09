@@ -1,0 +1,130 @@
+import matplotlib.pyplot as plt
+import mem_stress2
+import numpy as np
+import os
+
+def run_comparison():
+    print("=== Analyse Min/Max : Benchmark en KiloOctets (Ko) ===")
+    
+    # LISTE EN KILO-OCTETS (Ko)
+    # 32 Ko = L1 typique
+    # 256 Ko = L2 typique
+    # 4096 Ko (4 Mo) et plus = L3 puis RAM
+    target_sizes_kb = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
+    
+    output_dir = "results"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    data = {
+        'Seq Read':   {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#1f77b4'},
+        'Seq Write':  {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#d62728'},
+        'Rand Read':  {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#ff7f0e'},
+        'Rand Write': {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#2ca02c'}
+    }
+    
+    ITERS_SEQ = 10000   # Nombre de passages complets sur le tableau
+    ITERS_RAND = 10000  # Nombre de batches de 50k accès
+    BATCH_SIZE = 20000
+
+    for size_kb in target_sizes_kb:
+        # Affichage pour suivre
+        if size_kb < 1024:
+            print(f"--- Benchmarking : {size_kb} Ko ---")
+        else:
+            print(f"--- Benchmarking : {size_kb/1024:.1f} Mo ---")
+        
+        # --- CONVERSION : Kilo -> Bytes ---
+        real_size_bytes = int(size_kb * 1024)
+        
+        # 1. SEQUENTIAL READ
+        mem_stress2.sequential_read(real_size_bytes, 20)
+        _, _, avg, mini, maxi,_, _, _,std = mem_stress2.sequential_read(real_size_bytes, ITERS_SEQ)
+        
+        data['Seq Read']['x'].append(size_kb) # Axe X en Ko
+        data['Seq Read']['y'].append(avg)
+        data['Seq Read']['std'].append(std)
+        data['Seq Read']['y_err_low'].append(avg - mini) 
+        data['Seq Read']['y_err_high'].append(maxi - avg)
+
+        # 2. SEQUENTIAL WRITE
+        #mem_stress2.sequential_write(real_size_bytes, 20)
+        _, _, avg, mini, maxi,_, _, _,std = mem_stress2.sequential_write(real_size_bytes, ITERS_SEQ)
+        
+        data['Seq Write']['x'].append(size_kb) # Axe X en Ko
+        data['Seq Write']['y'].append(avg)
+        data['Seq Write']['std'].append(std)
+        data['Seq Write']['y_err_low'].append(avg - mini) 
+        data['Seq Write']['y_err_high'].append(maxi - avg)
+        
+        # 2. RANDOM READ
+        _,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        
+        data['Rand Read']['x'].append(size_kb)
+        data['Rand Read']['y'].append(avg)
+        data['Rand Read']['std'].append(std)
+        data['Rand Read']['y_err_low'].append(avg - mini)
+        data['Rand Read']['y_err_high'].append(maxi - avg)
+
+        # 3. RANDOM WRITE
+        _,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        
+        data['Rand Write']['x'].append(size_kb)
+        data['Rand Write']['y'].append(avg)
+        data['Rand Write']['std'].append(std)
+        data['Rand Write']['y_err_low'].append(avg - mini)
+        data['Rand Write']['y_err_high'].append(maxi - avg)
+
+    # --- Tracé ---
+    print("\n[INFO] Génération du graphique...")
+    plt.figure(figsize=(12, 8))
+    
+    # Dictionnaire de décalage (Shift factors)
+    # Comme l'échelle est LOG, on multiplie pour décaler visuellement de façon constante
+    offsets = {
+        'Seq Read':   0.75,  # Décalé à Gauche (-15%)
+        'Seq Write':  0.90,
+        'Rand Read':  1.10,  # Au Centre
+        'Rand Write': 1.25   # Décalé à Droite (+15%)
+    }
+
+    for label, d in data.items():
+        shifted_x = [val * offsets[label] for val in d['x']]
+        asymmetric_error = [d['y_err_low'], d['y_err_high']]
+
+        lower_std = [y - s for y, s in zip(d['y'], d['std'])]
+        upper_std = [y + s for y, s in zip(d['y'], d['std'])]
+
+        
+        
+        plt.errorbar(
+            shifted_x, d['y'], 
+            yerr=asymmetric_error, 
+            label=label, color=d['c'], fmt='o', 
+            linewidth=2, markersize=5, capsize=4, alpha=0.9, ecolor=d['c']
+        )
+
+    plt.xscale('log')
+    plt.yscale('log')
+
+    # On force l'affichage des ticks pour toutes nos tailles
+    plt.xticks(
+        ticks=target_sizes_kb, 
+        labels=[str(s) for s in target_sizes_kb], 
+        rotation=45
+    )
+
+    plt.xlabel('Taille du Bloc Mémoire (Ko)', fontsize=12, fontweight='bold')
+    plt.ylabel('latence moyenne par accès à un élément (ns).', fontsize=12, fontweight='bold')
+    plt.title(f'Performance Mémoire : L1 -> L2 -> RAM (Échelle Ko) ({ITERS_SEQ} iters Seq / {ITERS_RAND} iters Rand)', fontsize=14)
+
+    plt.grid(True, which="major", ls="-", alpha=0.6)
+    plt.legend(fontsize=11, loc='upper left')
+
+    save_path = os.path.join(output_dir, "micro_analysis_iterations.png")
+    plt.savefig(save_path)
+    print(f"[OK] Graphique sauvegardé : {save_path}")
+    plt.show()
+
+if __name__ == "__main__":
+    run_comparison()
