@@ -72,9 +72,17 @@ def run_comparison():
 
     # --- Tracé ---
     plt.figure(figsize=(12, 8))
+
+    offsets = {
+        'Seq Read':   0.75,  # Décalé à Gauche (-15%)
+        'Seq Write':  0.90,
+        'Rand Read':  1.10,  # Au Centre
+        'Rand Write': 1.25   # Décalé à Droite (+15%)
+    }
+
     for label, d in data.items():
         plt.errorbar(
-            d['x'], d['y'], yerr=[d['y_err_low'], d['y_err_high']], 
+            shifted_x = [val * offsets[label] for val in d['x']], d['y'], yerr=[d['y_err_low'], d['y_err_high']], 
             label=label, color=d['c'], fmt='o', linewidth=2, capsize=4
         )
 
@@ -87,7 +95,7 @@ def run_comparison():
     plt.grid(True, which="both", ls="-", alpha=0.5)
     plt.legend()
 
-    plt.savefig(os.path.join(output_dir, "latence_d'acces_au_tableau_entier_et_std.png"))
+    plt.savefig(os.path.join(output_dir, "latence_d'acces_au_tableau_entier.png"))
     plt.show()
 
 if __name__ == "__main__":

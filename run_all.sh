@@ -38,6 +38,11 @@ echo ""
 echo "--- PHASE 4 : Analyse Scientifique (Corrélation & Misses) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_scientific_analysis.py
 
+# 5. Graphe pour cpu breakdown
+echo ""
+echo "--- PHASE 5 : plot cpu breakdown ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD plot_cpu_breakdown.py
+
 echo ""
 echo "=================================================="
 echo "   TERMINÉ ! VÉRIFIEZ LE DOSSIER /results"

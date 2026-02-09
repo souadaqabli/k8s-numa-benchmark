@@ -91,9 +91,10 @@ def run_comparison():
     for label, d in data.items():
         shifted_x = [val * offsets[label] for val in d['x']]
         asymmetric_error = [d['y_err_low'], d['y_err_high']]
+        std_err = d['std']
 
-        lower_std = [y - s for y, s in zip(d['y'], d['std'])]
-        upper_std = [y + s for y, s in zip(d['y'], d['std'])]
+        #lower_std = [y - s for y, s in zip(d['y'], d['std'])]
+        #upper_std = [y + s for y, s in zip(d['y'], d['std'])]
 
         
         

@@ -21,9 +21,7 @@ def get_perf_metrics(size_bytes):
         "-e", "LLC-load-misses,instructions,cycles",
         "-x", ";",
         "python3", "mem_stress2.py",
-        "--mode", "random_read"
-        
-        ",
+        "--mode", "random_read",
         "--size-bytes", str(size_bytes),
         "--iters", str(ITERS_RAND), # Utilisation de --iters au lieu de --duration
         "--batch", str(BATCH)

@@ -49,7 +49,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
 
     cmd = [
         "perf", "stat",
-        "-e", "cycles,instructions,L1-dcache-load-misses,LLC-load-misses,dTLB-load-misses",
+        "-e", "cycles,instructions,L1-dcache-load-misses,LLC-load-misses,dTLB-load-misses,stalled-cycles-frontend,stalled-cycles-backend",
         "-x", ";",
         "python3", "mem_stress2.py",
         "--mode", mode,
@@ -84,7 +84,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
             ops = float(line.split("ops/s:")[1].strip())
 
     # -------- EXTRACTION PERF (Stderr) --------
-    metrics = {"cycles": 0, "instructions": 0, "L1_misses": 0, "LLC_misses": 0, "TLB_misses": 0}
+    metrics = {"cycles": 0, "instructions": 0, "L1_misses": 0, "LLC_misses": 0, "TLB_misses": 0, "stalled_frontend": 0, "stalled_backend": 0}
     for line in proc.stderr.splitlines():
         parts = line.strip().split(";")
         if len(parts) < 3: continue
@@ -110,7 +110,10 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
         "IPC": ipc,
         "L1_misses": metrics["L1_misses"],
         "LLC_misses": metrics["LLC_misses"],
-        "TLB_misses": metrics["TLB_misses"]
+        "TLB_misses": metrics["TLB_misses"],
+        "stalled_frontend": metrics["stalled_frontend"], 
+        "stalled_backend": metrics["stalled_backend"],   
+        "cycles": metrics["cycles"]                     
     }
 
 # ------------------ RUN & SAVE ------------------
