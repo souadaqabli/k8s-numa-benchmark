@@ -34,14 +34,25 @@ echo "--- PHASE 3 : Macro-Analyse (Graphique Escalier) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_macro_analysis.py
 
 # 5. Le graphe Superviseur (Corrélation)
+#echo ""
+#echo "--- PHASE 4 : Analyse Scientifique (Corrélation & Misses) ---"
+#taskset -c $TARGET_THREAD $PYTHON_CMD run_scientific_analysis.py
+
+# 5. Le graphe du test sequentiel 
 echo ""
-echo "--- PHASE 4 : Analyse Scientifique (Corrélation & Misses) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_scientific_analysis.py
+echo "--- PHASE 4 : Micro-Analyse (mode sequentiel) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
+
+# 6. Displot de correlation 
+#echo ""
+#echo "--- PHASE 5 : Displot correlation latence et caches misses ---"
+#taskset -c $TARGET_THREAD $PYTHON_CMD correlation.py
+
 
 # 5. Graphe pour cpu breakdown
-echo ""
-echo "--- PHASE 5 : plot cpu breakdown ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD plot_cpu_breakdown.py
+#echo ""
+#echo "--- PHASE 5 : plot cpu breakdown ---"
+#taskset -c $TARGET_THREAD $PYTHON_CMD plot_cpu_breakdown.py
 
 echo ""
 echo "=================================================="
