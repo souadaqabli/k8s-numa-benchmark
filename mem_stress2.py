@@ -15,6 +15,8 @@ def sequential_read(size_bytes, iterations):
     """
     size = size_bytes // 8  # éléments float64 (8 bytes)
     src = np.ones(size, dtype=np.uint64)
+
+    all_latencies = []
     
     stat = np.zeros(4, dtype = np.uint64)
     stat[0] = np.iinfo(np.uint64).max
@@ -26,6 +28,7 @@ def sequential_read(size_bytes, iterations):
         t1 = time.perf_counter_ns()
         
         lat = t1 - t0
+        all_latencies.append(lat)
         stat[0] = min(stat[0], lat)   # le minimum sur toutes les iterations
         stat[1] = max(stat[1], lat)   # le maximum sur toutes les iterations
         stat[2] = stat[2] + lat       # temps total passe a lire le tableau
@@ -40,12 +43,14 @@ def sequential_read(size_bytes, iterations):
     avg_lat_ns = (stat[2] / iterations) / len(src)          # latence moyenne par element 
     
     variance = (stat[3] / iterations) - (avg_lat_iter**2)
-    std = np.sqrt(max(0, variance))
+    std = np.sqrt(max(0, variance))  #std pour une iteration complete
+
+    std_per_element = std / len(src)
 
     min_ns = stat[0] / len(src) # le temps pour acceder a un seul element dans la meilleure iteration
     max_ns = stat[1] / len(src)
 
-    return gb_s, t_end - t_start , avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0], stat[1],std
+    return gb_s, t_end - t_start , avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0], stat[1],std_per_element,all_latencies
 
 
 # -------------------------------------------------------------------
@@ -57,6 +62,7 @@ def sequential_write(size_bytes, iterations):
     """
     size = size_bytes // 8 # float64
     arr = np.ones(size, dtype=np.uint64)
+    all_latencies = []
     
     stat = np.zeros(4, dtype = np.uint64)
     stat[0] = np.iinfo(np.uint64).max
@@ -69,6 +75,7 @@ def sequential_write(size_bytes, iterations):
         t1 = time.perf_counter_ns()
         
         lat = t1 - t0
+        all_latencies.append(lat)
         stat[0] = min(stat[0], lat)   # le minimum sur toutes les iterations
         stat[1] = max(stat[1], lat)   # le maximum sur toutes les iterations
         stat[2] = stat[2] + lat       # temps total passe a ecrire le tableau
@@ -86,10 +93,12 @@ def sequential_write(size_bytes, iterations):
     variance = (stat[3] / iterations) - (avg_lat_iter**2)
     std = np.sqrt(max(0, variance))
 
+    std_per_element = std / len(arr)
+
     min_ns = stat[0] / len(arr) # le temps pour ecrire un seul element dans la meilleure iteration
     max_ns = stat[1] / len(arr)
     
-    return gb_s, t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0], stat[1], std
+    return gb_s, t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0], stat[1], std_per_element,all_latencies
 
 
 # -------------------------------------------------------------------
@@ -106,6 +115,7 @@ def random_access_test(size_bytes, iterations, batch):
     
     stat = np.zeros(4, dtype=np.uint64)
     stat[0] = np.iinfo(np.uint64).max
+    all_latencies = []
     
 
     t_start = time.perf_counter()
@@ -118,6 +128,7 @@ def random_access_test(size_bytes, iterations, batch):
         t1 = time.perf_counter_ns()
         
         lat = t1 - t0 # Temps pour traiter UN BATCH
+        all_latencies.append(lat)
         
         stat[0] = min(stat[0], lat)   # le minimum pour un batch
         stat[1] = max(stat[1], lat)   # le maximum pour un batch
@@ -139,8 +150,9 @@ def random_access_test(size_bytes, iterations, batch):
 
     variance = (stat[3] / iterations) - ((stat[2] / iterations)**2)
     std = np.sqrt(max(0, variance))
+    std_per_element = std / batch   #np.sqrt(batch)
     
-    return ops_s , t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std
+    return ops_s , t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std_per_element, all_latencies
 
 # -------------------------------------------------------------------
 # 5. RANDOM WRITE (Aggressive Random Writes)
@@ -155,6 +167,7 @@ def random_write_test(size_bytes, iterations, batch):
     
     stat = np.zeros(4, dtype=np.uint64)
     stat[0] = np.iinfo(np.uint64).max
+    all_latencies = []
     
     ops = 0
     
@@ -170,6 +183,8 @@ def random_write_test(size_bytes, iterations, batch):
         t1 = time.perf_counter_ns()
         
         lat = t1 - t0
+
+        all_latencies.append(lat)
         stat[0] = min(stat[0], lat)   # le minimum pour un batch
         stat[1] = max(stat[1], lat)   # le maximum pour un batch
         stat[2] = stat[2] + lat       # temps total cumulé
@@ -191,8 +206,9 @@ def random_write_test(size_bytes, iterations, batch):
 
     variance = (stat[3] / iterations) - ((stat[2] / iterations)**2)
     std = np.sqrt(max(0, variance))
+    std_per_element = std / batch   #np.sqrt(batch)
     
-    return ops_s, t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std
+    return ops_s, t_end - t_start, avg_lat_ns, min_ns, max_ns, avg_lat_iter, stat[0] * ratio, stat[1] * ratio, std_per_element, all_latencies
     
 
 def stride_test(size_bytes, duration_s, stride_bytes=4096):

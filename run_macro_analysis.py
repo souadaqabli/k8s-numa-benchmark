@@ -8,7 +8,7 @@ def run_comparison():
     
     target_sizes_kb = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
     
-    output_dir = "results"
+    output_dir = "results?analysis_4modes"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 

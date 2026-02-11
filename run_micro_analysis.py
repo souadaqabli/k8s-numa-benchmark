@@ -10,9 +10,9 @@ def run_comparison():
     # 32 Ko = L1 typique
     # 256 Ko = L2 typique
     # 4096 Ko (4 Mo) et plus = L3 puis RAM
-    target_sizes_kb = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
+    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
     
-    output_dir = "results"
+    output_dir = "results/analysis_4modes"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -38,8 +38,9 @@ def run_comparison():
         real_size_bytes = int(size_kb * 1024)
         
         # 1. SEQUENTIAL READ
-        mem_stress2.sequential_read(real_size_bytes, 20)
-        _, _, avg, mini, maxi,_, _, _,std = mem_stress2.sequential_read(real_size_bytes, ITERS_SEQ)
+        mem_stress2.sequential_read(real_size_bytes, 5000)
+        res_sr = mem_stress2.sequential_read(real_size_bytes, ITERS_SEQ)
+        avg, mini, maxi, std = res_sr[2] , res_sr[3], res_sr[4], res_sr[8]
         
         data['Seq Read']['x'].append(size_kb) # Axe X en Ko
         data['Seq Read']['y'].append(avg)
@@ -48,8 +49,9 @@ def run_comparison():
         data['Seq Read']['y_err_high'].append(maxi - avg)
 
         # 2. SEQUENTIAL WRITE
-        #mem_stress2.sequential_write(real_size_bytes, 20)
-        _, _, avg, mini, maxi,_, _, _,std = mem_stress2.sequential_write(real_size_bytes, ITERS_SEQ)
+        mem_stress2.sequential_write(real_size_bytes, 5000)
+        res_sw = mem_stress2.sequential_write(real_size_bytes, ITERS_SEQ)
+        avg, mini, maxi, std = res_sw[2] , res_sw[3], res_sw[4], res_sw[8]
         
         data['Seq Write']['x'].append(size_kb) # Axe X en Ko
         data['Seq Write']['y'].append(avg)
@@ -58,7 +60,9 @@ def run_comparison():
         data['Seq Write']['y_err_high'].append(maxi - avg)
         
         # 2. RANDOM READ
-        _,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        #_,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        res_rr = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        avg, mini, maxi, std = res_rr[2] , res_rr[3], res_rr[4], res_rr[8]
         
         data['Rand Read']['x'].append(size_kb)
         data['Rand Read']['y'].append(avg)
@@ -67,7 +71,9 @@ def run_comparison():
         data['Rand Read']['y_err_high'].append(maxi - avg)
 
         # 3. RANDOM WRITE
-        _,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        #_,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        res_rw = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        avg, mini, maxi, std = res_rw[2] , res_rw[3], res_rw[4], res_rw[8]
         
         data['Rand Write']['x'].append(size_kb)
         data['Rand Write']['y'].append(avg)
@@ -122,7 +128,7 @@ def run_comparison():
     plt.grid(True, which="major", ls="-", alpha=0.6)
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "micro_analysis_iterations.png")
+    save_path = os.path.join(output_dir, "micro_analysis_iterations_warmup.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()

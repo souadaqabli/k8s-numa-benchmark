@@ -6,7 +6,7 @@ import os
 # ------------------ CONFIG ------------------
 patterns = ["sequential_read", "sequential_write", "random_read", "random_write"]
 #sizes_mb = [2, 8, 1024]
-sizes_kb = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
+sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
 ITERS_SEQ = 10000   #kant 50
 ITERS_RAND = 10000
 batch = 20000
