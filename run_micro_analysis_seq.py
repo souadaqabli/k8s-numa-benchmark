@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import mem_stress2
 import numpy as np
 import os
+import pandas as pd  # <--- Assurez-vous d'ajouter cet import
+import seaborn as sns
+
 
 def run_comparison_sequential():
     print("=== Analyse Séquentielle : STD vs Min/Max ===")
@@ -30,7 +33,7 @@ def run_comparison_sequential():
         
         # 1. SEQUENTIAL READ
         # Warmup
-        mem_stress2.sequential_read(real_size_bytes, 5000)
+        #mem_stress2.sequential_read(real_size_bytes, 5000)
         # Mesure réelle
         res_sr = mem_stress2.sequential_read(real_size_bytes, ITERS_SEQ)
         avg, mini, maxi, std = res_sr[2] , res_sr[3], res_sr[4], res_sr[8]
@@ -43,7 +46,7 @@ def run_comparison_sequential():
 
         # 2. SEQUENTIAL WRITE
         # Warmup (Optionnel selon tes besoins, décommenté ici pour cohérence)
-        mem_stress2.sequential_write(real_size_bytes, 5000)
+        #mem_stress2.sequential_write(real_size_bytes, 5000)
         # mem_stress2.sequential_write(real_size_bytes, 20)
         res_sw = mem_stress2.sequential_write(real_size_bytes, ITERS_SEQ)
         avg, mini, maxi, std = res_sw[2] , res_sw[3], res_sw[4], res_sw[8]
@@ -53,7 +56,40 @@ def run_comparison_sequential():
         data['Seq Write']['std'].append(std)
         data['Seq Write']['y_err_low'].append(avg - mini) 
         data['Seq Write']['y_err_high'].append(maxi - avg)
-        
+
+    # =================================================================
+    # AJOUT DU BLOC RÉGRESSION LINÉAIRE (SEABORN)
+    # =================================================================
+    print("\n[INFO] Analyse de la dilution de l'overhead...")
+    rows = []
+    for mode in ['Seq Read', 'Seq Write']:
+        for i in range(len(data[mode]['x'])):
+            rows.append({
+                'size_kb': data[mode]['x'][i],
+                'lat_ns': data[mode]['y'][i],
+                'mode': mode
+            })
+    df_plot = pd.DataFrame(rows)
+    df_plot['inv_size'] = 1 / df_plot['size_kb']
+
+    sns.set_theme(style="whitegrid")
+    g = sns.lmplot(
+        data=df_plot,
+        x="inv_size", y="lat_ns", hue="mode",
+        palette={'Seq Read': '#1f77b4', 'Seq Write': '#d62728'},
+        height=6, aspect=1.4,
+        scatter_kws={"s": 60, "edgecolor": "w", "alpha": 0.8},
+        line_kws={"lw": 2}
+    )
+    plt.title("Régression Globale : Analyse de l'Overhead Résiduel", fontsize=14)
+    plt.xlabel("1 / Taille (Ko^-1)  <-- [Plus grand]   [Plus petit] -->", fontsize=12)
+    plt.ylabel("Latence Mesurée (ns)", fontsize=12)
+    plt.ylim(0, 10) 
+    plt.tight_layout()
+    # On ne fait pas plt.show() tout de suite pour laisser le graphique suivant s'afficher
+    # ou on peut le faire si tu veux voir les deux séparément.
+    plt.show()
+
 
     # --- Tracé ---
     print("\n[INFO] Génération du graphique...")
@@ -107,7 +143,7 @@ def run_comparison_sequential():
         )
 
     plt.xscale('log')
-    plt.yscale('log')
+    #plt.yscale('log')
 
     # Gestion des ticks X
     plt.xticks(
@@ -115,6 +151,7 @@ def run_comparison_sequential():
         labels=[str(s) for s in target_sizes_kb], 
         rotation=45
     )
+    plt.ylim(0, 10)
 
     # Titres et Grille
     plt.xlabel('Taille du Bloc Mémoire (Ko)', fontsize=12, fontweight='bold')
@@ -126,10 +163,13 @@ def run_comparison_sequential():
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_seq_std_warmup_20000.png")
+    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()
+
+
+
 
 if __name__ == "__main__":
     run_comparison_sequential()

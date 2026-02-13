@@ -6,6 +6,25 @@ import argparse
 import multiprocessing as mp
 
 
+N_calibration = 1_000_000
+total_overhead = 0
+
+# On calcule le temps de l'appel perf
+for i in range(N_calibration):
+    Tstart = time.perf_counter_ns()
+    Tend = time.perf_counter_ns()
+    total_overhead += (Tend - Tstart)
+timeperf = total_overhead / N_calibration
+
+#Measures time of the .sum()
+a = np.array([], dtype=np.uint64)
+result = np.zeros((), dtype=np.float64)
+t_init = time.perf_counter_ns()
+for i in range (N_calibration) :
+    a.sum(out=result)
+t_final = time.perf_counter_ns()
+time_sum = ((t_final - t_init) // N_calibration)
+
 #-------------------------------------------------
 # 1. Sequential read  
 #-------------------------------------------------
@@ -13,8 +32,10 @@ def sequential_read(size_bytes, iterations):
     """
     Benchmarks sequential memory read performance (linear access).
     """
+    global result
     size = size_bytes // 8  # éléments float64 (8 bytes)
     src = np.ones(size, dtype=np.uint64)
+    
 
     all_latencies = []
     
@@ -24,10 +45,10 @@ def sequential_read(size_bytes, iterations):
     t_start = time.perf_counter()
     for _ in range(iterations):
         t0 = time.perf_counter_ns()
-        _ = src.sum()  
+        src.sum(out=result) 
         t1 = time.perf_counter_ns()
         
-        lat = t1 - t0
+        lat = (t1 - t0) - (timeperf + time_sum)
         all_latencies.append(lat)
         stat[0] = min(stat[0], lat)   # le minimum sur toutes les iterations
         stat[1] = max(stat[1], lat)   # le maximum sur toutes les iterations
@@ -60,6 +81,7 @@ def sequential_write(size_bytes, iterations):
     """
     Benchmarks sequential memory write performance (linear fill).
     """
+
     size = size_bytes // 8 # float64
     arr = np.ones(size, dtype=np.uint64)
     all_latencies = []
@@ -74,7 +96,7 @@ def sequential_write(size_bytes, iterations):
         arr[:] = 1 
         t1 = time.perf_counter_ns()
         
-        lat = t1 - t0
+        lat = (t1 - t0) - timeperf    # +time_write_overhead
         all_latencies.append(lat)
         stat[0] = min(stat[0], lat)   # le minimum sur toutes les iterations
         stat[1] = max(stat[1], lat)   # le maximum sur toutes les iterations
@@ -232,6 +254,14 @@ def stride_test(size_bytes, duration_s, stride_bytes=4096):
 # MAIN
 # -------------------------------------------------------------------
 if __name__ == "__main__":
+
+    try:
+        os.sched_setaffinity(0, {0})
+        print(f"[INFO] Processus épinglé sur le Cœur 0")
+    except AttributeError:
+        # Cas particulier pour Windows ou systèmes ne supportant pas sched_setaffinity
+        print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
+
     # GESTION UNIQUE DU SEED ICI (Global pour toutes les fonctions)
     np.random.seed(0)
 
