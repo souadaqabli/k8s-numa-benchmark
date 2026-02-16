@@ -3,22 +3,22 @@ import subprocess
 import re
 import seaborn as sns
 import matplotlib.pyplot as plt
-import mem_stress2
+import mem_stress3
 
 def generate_correlation_df():
     # --- LISTE ÉQUILIBRÉE DES TAILLES ---
-    sizes_kb = [
-        4, 16, 28,             # L1
-        48, 128, 224,          # L2
-        512, 1024, 2048, 3072, # L3
-        6144, 8192, 16384, 32768, 65536 # RAM
-    ]
-    
+    #sizes_kb = [
+        #4, 16, 28,             # L1
+        #48, 128, 224,          # L2
+        #512, 1024, 2048, 3072, # L3
+        #6144, 8192, 16384, 32768, 65536 # RAM
+    #]
+    sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
     data_list = []
     
     # PARAMÈTRES FIXES DU TEST
     TEST_MODE = "random_write_test" # ou "sequential_read", etc.
-    BATCH_SIZE = 50000         # Doit correspondre à la valeur par défaut dans mem_stress2.py
+    BATCH_SIZE = 50000         # Doit correspondre à la valeur par défaut dans mem_stress3.py
 
     for size_kb in sizes_kb:
         size_bytes = size_kb * 1024
@@ -28,10 +28,10 @@ def generate_correlation_df():
         # Attention : On utilise bien 'random_write' ici aussi
         if "random" in TEST_MODE:
             # Les fonctions random prennent 3 arguments (size, iters, batch)
-            perf_py_cmd = f"import mem_stress2; mem_stress2.{TEST_MODE}({size_bytes}, 10000, {BATCH_SIZE})"
+            perf_py_cmd = f"import mem_stress3; mem_stress3.{TEST_MODE}({size_bytes}, 10000, {BATCH_SIZE})"
         else:
             # Les fonctions séquentiel ne prennent que 2 arguments (size, iters)
-            perf_py_cmd = f"import mem_stress2; mem_stress2.{TEST_MODE}({size_bytes}, 10000)"
+            perf_py_cmd = f"import mem_stress3; mem_stress3.{TEST_MODE}({size_bytes}, 10000)"
 
         cmd = [
             "sudo", "perf", "stat", 
@@ -58,13 +58,13 @@ def generate_correlation_df():
         # 2. Récupération des LATENCES
         # On appelle la fonction correspondante dynamiquement ou avec des if
         if TEST_MODE == "random_write_test":
-            res = mem_stress2.random_write_test(size_bytes, 10000, BATCH_SIZE)
+            res = mem_stress3.random_write_test(size_bytes, 10000, BATCH_SIZE)
         elif TEST_MODE == "random_access_test":
-            res = mem_stress2.random_access_test(size_bytes, 10000, BATCH_SIZE)
+            res = mem_stress3.random_access_test(size_bytes, 10000, BATCH_SIZE)
         elif TEST_MODE == "sequential_read":
-            res = mem_stress2.sequential_read(size_bytes, 10000)
+            res = mem_stress3.sequential_read(size_bytes, 10000)
         elif TEST_MODE == "sequential_write":
-            res = mem_stress2.sequential_write(size_bytes, 10000)
+            res = mem_stress3.sequential_write(size_bytes, 10000)
         
         # La liste des latences brutes est toujours le dernier élément retourné
         lats_raw = res[-1] 
@@ -129,13 +129,13 @@ g = sns.displot(
 )
 
 # Sauvegarde le DataFrame dans ton dossier projet
-df_corr.to_csv("results/correlations/donnees_correlation_complet_randwrite.csv", index=False)
-print("\nFichier 'donnees_correlation_complet_randwrite.csv' créé avec succès.")
+df_corr.to_csv("results/correlations/donnees_correlation_complet_randwriteVclaude.csv", index=False)
+print("\nFichier 'donnees_correlation_complet_randwriteVclaude.csv' créé avec succès.")
 # 3. On ajoute les labels comme sur ton schéma
 g.set_axis_labels("Nombre de LLC-load-misses", "Latence par élément (ns) [Log]")
 plt.title("Analyse de Densité : Impact des Cache Misses sur la Latence")
 
 # 4. Sauvegarde pour rapport de TER
-plt.savefig("results/correlations/displot_randwrite.png", dpi=300)
+plt.savefig("results/correlations/displot_randwriteVclaude.png", dpi=300)
 plt.show()
 

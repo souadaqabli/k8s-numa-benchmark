@@ -29,9 +29,9 @@ echo "--- PHASE 2 : Micro-Analyse (Graphique Escalier) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
 
 # 4. Le graphe Macro (Latence pour lire le tableau entier en une iteration)
-echo ""
-echo "--- PHASE 3 : Macro-Analyse (Graphique Escalier) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_macro_analysis.py
+#echo ""
+#echo "--- PHASE 3 : Macro-Analyse (Graphique Escalier) ---"
+#taskset -c $TARGET_THREAD $PYTHON_CMD run_macro_analysis.py
 
 # 5. Le graphe Superviseur (Corrélation)
 #echo ""
@@ -42,6 +42,12 @@ taskset -c $TARGET_THREAD $PYTHON_CMD run_macro_analysis.py
 echo ""
 echo "--- PHASE 4 : Micro-Analyse (mode sequentiel) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
+
+
+# 6. Le graphe du test sequentiel 
+echo ""
+echo "--- PHASE 4 : Micro-Analyse (mode aleatoire) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
 
 # 6. Displot de correlation 
 #echo ""

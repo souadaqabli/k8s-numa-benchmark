@@ -128,7 +128,7 @@ def run_comparison():
     plt.grid(True, which="major", ls="-", alpha=0.6)
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "micro_analysis_iterations_warmup.png")
+    save_path = os.path.join(output_dir, "micro_analysis_iterations_versionClaude.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()

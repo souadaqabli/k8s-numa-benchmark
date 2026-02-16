@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import mem_stress2
+import mem_stress3
 import numpy as np
 import os
 
@@ -30,7 +30,7 @@ def run_comparison_random():
         real_size_bytes = int(size_kb * 1024)
         
         # 1. SEQUENTIAL READ
-        res_rr = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        res_rr = mem_stress3.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
         avg, mini, maxi, std = res_rr[2] , res_rr[3], res_rr[4], res_rr[8]
         
         data['Rand Read']['x'].append(size_kb)
@@ -40,8 +40,8 @@ def run_comparison_random():
         data['Rand Read']['y_err_high'].append(maxi - avg)
 
         # 3. RANDOM WRITE
-        #_,_, avg, mini, maxi, _, _, _, std = mem_stress2.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
-        res_rw = mem_stress2.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        #_,_, avg, mini, maxi, _, _, _, std = mem_stress3.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
+        res_rw = mem_stress3.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
         avg, mini, maxi, std = res_rw[2] , res_rw[3], res_rw[4], res_rw[8]
         
         data['Rand Write']['x'].append(size_kb)
@@ -122,7 +122,7 @@ def run_comparison_random():
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_20000.png")
+    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_20000_Vclaude2.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()

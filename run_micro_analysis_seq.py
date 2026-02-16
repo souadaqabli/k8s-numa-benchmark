@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import mem_stress2
+import mem_stress3
 import numpy as np
 import os
 import pandas as pd  # <--- Assurez-vous d'ajouter cet import
@@ -33,9 +33,9 @@ def run_comparison_sequential():
         
         # 1. SEQUENTIAL READ
         # Warmup
-        #mem_stress2.sequential_read(real_size_bytes, 5000)
+        #mem_stress3.sequential_read(real_size_bytes, 5000)
         # Mesure réelle
-        res_sr = mem_stress2.sequential_read(real_size_bytes, ITERS_SEQ)
+        res_sr = mem_stress3.sequential_read(real_size_bytes, ITERS_SEQ)
         avg, mini, maxi, std = res_sr[2] , res_sr[3], res_sr[4], res_sr[8]
         
         data['Seq Read']['x'].append(size_kb)
@@ -46,9 +46,9 @@ def run_comparison_sequential():
 
         # 2. SEQUENTIAL WRITE
         # Warmup (Optionnel selon tes besoins, décommenté ici pour cohérence)
-        #mem_stress2.sequential_write(real_size_bytes, 5000)
-        # mem_stress2.sequential_write(real_size_bytes, 20)
-        res_sw = mem_stress2.sequential_write(real_size_bytes, ITERS_SEQ)
+        #mem_stress3.sequential_write(real_size_bytes, 5000)
+        # mem_stress3.sequential_write(real_size_bytes, 20)
+        res_sw = mem_stress3.sequential_write(real_size_bytes, ITERS_SEQ)
         avg, mini, maxi, std = res_sw[2] , res_sw[3], res_sw[4], res_sw[8]
         
         data['Seq Write']['x'].append(size_kb)
@@ -56,6 +56,7 @@ def run_comparison_sequential():
         data['Seq Write']['std'].append(std)
         data['Seq Write']['y_err_low'].append(avg - mini) 
         data['Seq Write']['y_err_high'].append(maxi - avg)
+
 
     # =================================================================
     # AJOUT DU BLOC RÉGRESSION LINÉAIRE (SEABORN)
@@ -163,7 +164,7 @@ def run_comparison_sequential():
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead.png")
+    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_versionClaude_prefetcher.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()
