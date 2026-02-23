@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# mem_stress_corrected.py -- Corrected memory benchmark functions
+# mem_stress3.py -
 import numpy as np
 import time
 import os
@@ -22,14 +22,17 @@ timeperf = total_overhead / N_calibration  # ← Division FLOTTANTE
 print(f"[CALIBRATION] Overhead time.perf_counter_ns() : {timeperf:.2f} ns")
 
 # 2. Mesure de l'overhead de .sum() sur tableau vide
+total_sum_overhead = 0
 a = np.array([], dtype=np.uint64)  # Cohérence de type
 result = np.zeros((), dtype=np.uint64)
-t_init = time.perf_counter_ns()
-for i in range(N_calibration):
-    a.sum(out=result)
-t_final = time.perf_counter_ns()
 
-time_sum = (t_final - t_init) / N_calibration  # ← Division FLOTTANTE 
+for i in range(N_calibration):
+    t_init = time.perf_counter_ns()
+    a.sum(out=result)
+    t_final = time.perf_counter_ns()
+    total_sum_overhead += (t_final - t_init)
+
+time_sum = total_sum_overhead / N_calibration  # ← Division FLOTTANTE 
 print(f"[CALIBRATION] Overhead .sum() : {time_sum:.2f} ns")
 print(f"[CALIBRATION] Overhead total (read) : {timeperf + time_sum:.2f} ns")
 print(f"[CALIBRATION] Overhead total (write) : {timeperf:.2f} ns\n")
@@ -131,7 +134,7 @@ def sequential_write(size_bytes, iterations):
          min_lat_iter, max_lat_iter, std_per_element, all_latencies)
     """
     size = size_bytes // 8
-    arr = np.zeros(size, dtype=np.uint64)  # ← Initialiser à 0 (pas 1)
+    arr = np.zeros(size, dtype=np.uint64)  # ← Initialiser à 0 
     
     all_latencies_raw = []
     
@@ -389,12 +392,12 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
 
 if __name__ == "__main__":
 
-    try:
-        os.sched_setaffinity(0, {0})
-        print(f"[INFO] Processus épinglé sur le Cœur 0")
-    except AttributeError:
+    #try:
+        #os.sched_setaffinity(0, {0})
+        #print(f"[INFO] Processus épinglé sur le Cœur 0")
+    #except AttributeError:
         # Cas particulier pour Windows ou systèmes ne supportant pas sched_setaffinity
-        print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
+        #print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
 
     # GESTION UNIQUE DU SEED ICI (Global pour toutes les fonctions)
     np.random.seed(0)

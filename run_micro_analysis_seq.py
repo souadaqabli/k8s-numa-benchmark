@@ -164,7 +164,8 @@ def run_comparison_sequential():
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_versionClaude_prefetcher.png")
+    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_versionClaude_correction.png")
+    #save_path = os.path.join(output_dir, "analyse_seq_initiale.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()

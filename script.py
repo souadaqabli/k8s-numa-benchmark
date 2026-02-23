@@ -3,23 +3,74 @@ import subprocess
 import pandas as pd
 import os
 import time
+import matplotlib.pyplot as plt
 
 # ------------------ CONFIG ------------------
-patterns = ["sequential_read", "sequential_write", "random_read", "random_write"]
+patterns = ["sequential_read", "sequential_write"] #"random_read", #"random_write"]
 
 sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
-ITERS_SEQ = 10000   
-ITERS_RAND = 10000
+ITERS_SEQ = 20000   
+ITERS_RAND = 20000
 batch = 20000
 
 stride_list = [64, 256, 512, 1024, 2048, 4096, 8192]
 fixed_size_for_stride = 512 
 
 results = []
-output_dir = "results"
+output_dir = "results/perf/seq"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
+
+
+# ------------------ NOUVELLE FONCTION GRAPHIQUE ------------------
+def generate_scientific_plots(df, output_dir):
+    """Génère les graphiques de corrélation pour chaque mode et l'IPC global"""
+    plt.style.use('seaborn-v0_8-muted')
+    l3_limit_kb = 4096  # Ta limite spécifique de 4 Mo
+
+    # 1. Graphique IPC Global
+    plt.figure(figsize=(12, 7))
+    for pattern in df['pattern'].unique():
+        subset = df[df['pattern'] == pattern]
+        plt.plot(subset['size_kb'], subset['IPC'], marker='o', label=pattern.replace("_", " "))
+    
+    plt.axvline(x=l3_limit_kb, color='red', linestyle='--', linewidth=2, label='Limite L3 (4Mo)')
+    plt.xscale('log')
+    plt.xlabel('Taille du tableau (Ko)')
+    plt.ylabel('IPC (Instructions Per Cycle)')
+    plt.title('Efficience du CPU (IPC) vs Taille du Working Set')
+    plt.legend()
+    plt.grid(True, which="both", ls="-", alpha=0.5)
+    plt.savefig(os.path.join(output_dir, "perf_ipc_vs_size.png"))
+    plt.close()
+
+    # 2. Graphiques de Corrélation par Mode
+    for mode in df['pattern'].unique():
+        df_mode = df[df['pattern'] == mode]
+        fig, ax1 = plt.subplots(figsize=(10, 6))
+        
+        # Axe Latence
+        color_lat = 'tab:blue'
+        ax1.set_xlabel('Taille (Ko)')
+        ax1.set_ylabel('Latence (ns)', color=color_lat, fontweight='bold')
+        ax1.plot(df_mode['size_kb'], df_mode['lat_ns'], color=color_lat, marker='s', label='Latence')
+        ax1.tick_params(axis='y', labelcolor=color_lat)
+        ax1.set_xscale('log')
+        
+        # Axe LLC Misses
+        ax2 = ax1.twinx()
+        color_miss = 'tab:red'
+        ax2.set_ylabel('LLC Misses', color=color_miss, fontweight='bold')
+        ax2.plot(df_mode['size_kb'], df_mode['LLC_misses'], color=color_miss, marker='^', linestyle='--', label='LLC Misses')
+        ax2.tick_params(axis='y', labelcolor=color_miss)
+
+        ax1.axvline(x=l3_limit_kb, color='black', linestyle=':', alpha=0.5)
+        plt.title(f'Corrélation Latence vs Défauts L3 : {mode.replace("_", " ").title()}')
+        fig.tight_layout()
+        plt.savefig(os.path.join(output_dir, f"correlation_{mode}.png"))
+        plt.close()
+
 
 #-------------Topology--------------
 def capture_system_topology():
@@ -179,9 +230,16 @@ for size_kb in sizes_kb:
     #results.append(run_perf("stride", fixed_size_for_stride, stride_val=s))
 
 df = pd.DataFrame(results)
-df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full.csv"), index=False)
+df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full_seq.csv"), index=False)
 print("\n=== TERMINE ===")
 #print(df)
 # Affiche uniquement les colonnes essentielles pour ton analyse
 print("\n=== APERÇU DES PERFORMANCES ===")
 print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_misses","TLB_misses"]].to_string(index=False))
+
+
+
+# On appelle la génération des graphiques ICI
+generate_scientific_plots(df, output_dir)
+
+print("\n=== TERMINE : Résultats et Graphiques dans le dossier 'results/perf' ===")
