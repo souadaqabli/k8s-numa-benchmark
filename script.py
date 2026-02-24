@@ -67,15 +67,15 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
         size_bytes = int(size_val * 1024 * 1024)
         print_size = f"{size_val} Mo"
     
-    # 1. INITIALISATION CRUCIALE (Évite UnboundLocalError)
+    # 1. INITIALISATION 
     ops_or_bw = 0.0
     lat_ns = 0.0
     
 
-    # Choix dynamique des itérations
+    # Dynamic choice of iterations
     current_iters = ITERS_SEQ if "sequential" in mode else ITERS_RAND
 
-    # Construction de la commande perf
+    # Construction of perf commande 
     cmd = [
         "perf", "stat",
         "-e", "cycles,instructions,L1-dcache-load-misses,LLC-load-misses,dTLB-load-misses,stalled-cycles-frontend,stalled-cycles-backend",
@@ -94,7 +94,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
     proc = subprocess.run(cmd, capture_output=True, text=True)
 
 
-    # -------- PARSING ROBUSTE (Compatible avec les prints) --------
+    # -------- PARSING ROBUSTE (Compatible with  prints) --------
     for line in proc.stdout.splitlines():
         line = line.strip()
         # Format : "Seq Read ... | BW: 25.4 GB/s | Lat: 0.31 ns (Min: 0.15, Max: 0.45)"
@@ -166,7 +166,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
 
     # Vérification du parsing
     if ops_or_bw == 0.0:
-        print(f"ERREUR : Parsing échoué")
+        print(f"ERREUR : Parsing failed")
         print(f"STDOUT:\n{proc.stdout}")
         print(f"STDERR:\n{proc.stderr[:500]}")
         return None
@@ -200,7 +200,7 @@ for size_kb in sizes_kb:
 
 df = pd.DataFrame(results)
 df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full_seq.csv"), index=False)
-print("\n=== TERMINE ===")
+print("\n=== FINISHED ===")
 #print(df)
 print("\n=== PERFORMANCE OVERVIEW ===")
 print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_misses","TLB_misses"]].to_string(index=False))

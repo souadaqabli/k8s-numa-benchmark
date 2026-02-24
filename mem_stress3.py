@@ -46,9 +46,8 @@ def sequential_read(size_bytes, iterations):
     Benchmarks sequential memory read performance (linear access).
     
     Args:
-        size_bytes: Taille du tableau en bytes
-        iterations: Nombre de répétitions
-        apply_correction: Si True, soustrait l'overhead (déconseillé pour size < 64 Ko)
+        size_bytes: Array size in bytes
+        iterations: Number of repetitions
     
     Returns:
         (gb_s, duration, avg_lat_ns, min_ns, max_ns, avg_lat_iter, 
@@ -125,9 +124,8 @@ def sequential_write(size_bytes, iterations):
     Benchmarks sequential memory write performance (linear fill).
     
     Args:
-        size_bytes: Taille du tableau en bytes
-        iterations: Nombre de répétitions
-        apply_correction: Si True, soustrait l'overhead timeperf
+        size_bytes: Array size in bytes
+        iterations: Number of repetitions
     
     Returns:
         (gb_s, duration, avg_lat_ns, min_ns, max_ns, avg_lat_iter, 
@@ -192,10 +190,9 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
     IMPORTANT: Measures ONLY the memory access time, NOT the index generation.
     
     Args:
-        size_bytes: Taille du tableau en bytes
-        iterations: Nombre de répétitions
-        batch: Nombre d'accès aléatoires par batch
-        apply_correction: Si True, soustrait l'overhead timeperf
+        size_bytes: Array size in bytes
+        iterations: Number of repetitions
+        batch: Number of random accesses per batch
     
     Returns:
         (ops_s, duration, avg_lat_ns, min_ns, max_ns, 
@@ -287,10 +284,9 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
     IMPORTANT: Measures ONLY the memory write time, NOT the index/value generation.
     
     Args:
-        size_bytes: Taille du tableau en bytes
-        iterations: Nombre de répétitions
-        batch: Nombre d'écritures aléatoires par batch
-        apply_correction: Si True, soustrait l'overhead timeperf
+        size_bytes: Array size in bytes
+        iterations: Number of repetitions
+        batch: Number of random writes per batch
     
     Returns:
         (ops_s, duration, avg_lat_ns, min_ns, max_ns,
@@ -304,7 +300,7 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
     # ========================================================================
     # PRE-GENERATE all indices BEFORE timing
     # ========================================================================
-    print(f"[INFO] Pré-génération de {iterations} batchs (indices + valeurs)...")
+    print(f"[INFO] Pre-generation of {iterations} batchs (indices + valeurs)...")
     all_indices = []
     all_values = []
     for _ in range(iterations):
@@ -370,8 +366,6 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
     std_per_element = std_batch / batch
 
 
-
-    
     return (ops_s, t_end - t_start, avg_lat_ns, min_ns, max_ns,
             avg_lat_batch, min_lat_batch, max_lat_batch,
             std_per_element, all_latencies_raw)
@@ -388,10 +382,10 @@ if __name__ == "__main__":
 
     try:
         os.sched_setaffinity(0, {0})
-        print(f"[INFO] Processus épinglé sur le Cœur 0")
+        print(f"[INFO] Process pinned to Core 0")
     except AttributeError:
-        # Cas particulier pour Windows ou systèmes ne supportant pas sched_setaffinity
-        print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
+        # Particular case for Windows or systems not supporting sched_setaffinity
+        print("[WARNING] sched_setaffinity not available on this system.")
 
     # GLOBAL SEED MANAGEMENT (Global for all functions)
     np.random.seed(0)

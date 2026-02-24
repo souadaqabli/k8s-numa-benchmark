@@ -81,39 +81,37 @@ def run_comparison_sequential():
         scatter_kws={"s": 60, "edgecolor": "w", "alpha": 0.8},
         line_kws={"lw": 2}
     )
-    plt.title("Régression Globale : Analyse de l'Overhead Résiduel", fontsize=14)
-    plt.xlabel("1 / Taille (Ko^-1)  <-- [Plus grand]   [Plus petit] -->", fontsize=12)
-    plt.ylabel("Latence Mesurée (ns)", fontsize=12)
+    plt.title("Global Regression : Analyse of Residual Overhead ", fontsize=14)
+    plt.xlabel("1 / Size(Ko^-1)  <-- [Bigger]   [smaller] -->", fontsize=12)
+    plt.ylabel("Measured Latency (ns)", fontsize=12)
     plt.ylim(0, 10) 
     plt.tight_layout()
 
     plt.show()
 
 
-    # --- Tracé ---
+    # --- Plot---
     print("\n[INFO] GENERATING PLOTS..")
     plt.figure(figsize=(12, 8))
     
-    # Légers décalages pour ne pas superposer les points bleus et rouges
+    # SHIFFTING
     offsets = {
         'Seq Read':   0.95, 
         'Seq Write':  1.05,
     }
 
     for label, d in data.items():
-        # Conversion en numpy array pour faciliter les opérations
+        # Conversion to numpy arrays
         x_vals = np.array(d['x'])
         y_vals = np.array(d['y'])
         
-        # Application du décalage
         shifted_x = x_vals * offsets[label]
         
-        # Récupération des erreurs
+        # capturing errors
         asymmetric_error = [d['y_err_low'], d['y_err_high']] # Pour Min/Max
         std_error = d['std']                                 # Pour STD
 
-        # --- COUCHE 1 : La Moyenne et la STD (Le Signal) ---
-        # On trace ceci en PREMIER (ou avec un zorder élevé) et en ÉPAIS
+        # --- COUCHE 1 : Average and STD (the Signal) ---
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=std_error, 
@@ -127,7 +125,7 @@ def run_comparison_sequential():
             zorder=5             
         )
 
-        # --- COUCHE 2 : Le Min/Max (Outliers) ---
+        # --- COUCHE 2 : Min/Max (Outliers) ---
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=asymmetric_error, 
@@ -164,7 +162,7 @@ def run_comparison_sequential():
     save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_version_finale_eng.png")
     #save_path = os.path.join(output_dir, "analyse_seq_initiale.png")
     plt.savefig(save_path)
-    print(f"[OK] Graphique sauvegardé : {save_path}")
+    print(f"[OK] Plot saved : {save_path}")
     plt.show()
 
 

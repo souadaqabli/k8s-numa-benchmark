@@ -6,10 +6,8 @@ import os
 # --- CONFIGURATION ---
 OUTPUT_DIR = "results"
 SIZES_KB = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
-
-# On utilise un nombre d'itérations (batches de 50k) 
-# suffisant pour stabiliser les compteurs perf
-ITERS_RAND = 10000 
+ 
+ITERS_RAND = 20000 
 BATCH = 20000
 
 def get_perf_metrics(size_bytes):
@@ -78,11 +76,11 @@ def run_analysis():
         y_ipc.append(ipc)
         print(f"{kb:<12} | {lat:<12.2f} | {miss_rate:<10.2f} | {ipc:<8.2f}")
 
-    # Calcul de la Corrélation de Pearson
+    # Pearson Correlation 
     corr = np.corrcoef(y_lat, y_miss)[0, 1] if len(y_lat) > 2 else 0
-    print(f"\n[STAT] Corrélation Latence/Misses : {corr:.4f}")
+    print(f"\n[STAT] Correlation Latency/Misses : {corr:.4f}")
 
-    # --- Tracé du Graphique Double Axe ---
+    # --- Plot double axis---
     fig, ax1 = plt.subplots(figsize=(12, 7))
     
     # Axe de gauche : Latence (ns)
@@ -103,12 +101,12 @@ def run_analysis():
     ax2.plot(x_sizes, y_miss, color=color, marker='x', linestyle='--', linewidth=2, label='Cache Misses')
     ax2.tick_params(axis='y', labelcolor=color)
 
-    plt.title(f'Analyse Scientifique : Latence vs Cache Misses\nCorrélation : {corr:.2f} | {ITERS_RAND} itérations fixes', fontsize=13)
+    plt.title(f'Scientific analysis : Latency vs Cache Misses\nCorrélation : {corr:.2f} | {ITERS_RAND} fixed iterations ', fontsize=13)
     
     fig.tight_layout()
     save_path = os.path.join(OUTPUT_DIR, "correlation_latency_misses.png")
     plt.savefig(save_path)
-    print(f"\n[OK] Graphique scientifique généré : {save_path}")
+    print(f"\n[OK] Scientific plot generated : {save_path}")
 
 if __name__ == "__main__":
     run_analysis()

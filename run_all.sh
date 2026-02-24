@@ -9,58 +9,40 @@ PYTHON_CMD="python3"
 mkdir -p "$RESULTS_DIR"
 
 echo "=================================================="
-echo "   BENCHMARK COMPLET AUTOMATISÉ (Coeur #$TARGET_THREAD)"
+echo "   AUTOMATED COMPLET BENCHMARK  (Coeur #$TARGET_THREAD)"
 echo "=================================================="
 
 # 1. Topologie (Si lstopo est installé)
 if command -v lstopo &> /dev/null; then
-    echo "[INFO] Capture Topologie..."
+    echo "[INFO] Topology Captured.."
     lstopo --output-format png "$RESULTS_DIR/system_topology.png" --no-io
 fi
 
 
-# 1. Le graphe du test sequentiel 
+# 1. Sequential test plot
 echo ""
-echo "--- PHASE 1 : Micro-Analyse (mode sequentiel) ---"
+echo "--- PHASE 1 : Micro-Analyse (sequential mode) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
 
-# 2. Le graphe du test aleatiore 
+# 2. Script to capture metrics perf and plot ipc vs size
+echo ""
+echo "--- PHASE 3 : Script Standard (CSV) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD script.py
+
+# 3. Random test plot 
 echo ""
 echo "--- PHASE 4 : Micro-Analyse (mode aleatoire) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
 
-# 2. Script habituel pour capturer les metriques perf
-echo ""
-echo "--- PHASE 1 : Script Standard (CSV) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD script.py
 
-# 3. Le graphe Micro (Escalier)
+
+# 3. Plot of sequential and random (to validate after)
 echo ""
 echo "--- PHASE 3 : Micro-Analyse (Graphique Escalier) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
 
-# 4. Le graphe Macro (Latence pour lire le tableau entier en une iteration)
-#echo ""
-#echo "--- PHASE 3 : Macro-Analyse (Graphique Escalier) ---"
-#taskset -c $TARGET_THREAD $PYTHON_CMD run_macro_analysis.py
-
-# 5. Le graphe Superviseur (Corrélation)
-#echo ""
-#echo "--- PHASE 4 : Analyse Scientifique (Corrélation & Misses) ---"
-#taskset -c $TARGET_THREAD $PYTHON_CMD run_scientific_analysis.py
-
-# 6. Displot de correlation 
-#echo ""
-#echo "--- PHASE 5 : Displot correlation latence et caches misses ---"
-#taskset -c $TARGET_THREAD $PYTHON_CMD correlation.py
-
-
-# 5. Graphe pour cpu breakdown
-#echo ""
-#echo "--- PHASE 5 : plot cpu breakdown ---"
-#taskset -c $TARGET_THREAD $PYTHON_CMD plot_cpu_breakdown.py
 
 echo ""
 echo "=================================================="
-echo "   TERMINÉ ! VÉRIFIEZ LE DOSSIER /results"
+echo "   FINISHED ! VERIFY FOLDER /results"
 echo "=================================================="
