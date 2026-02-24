@@ -6,12 +6,12 @@ import os
 import argparse
 
 # ============================================================================
-# CALIBRATION (À exécuter UNE FOIS au démarrage)
+# CALIBRATION (Run ONCE at startup)
 # ============================================================================
 
 N_calibration = 1_000_000
 
-# 1. Mesure de l'overhead de time.perf_counter_ns()
+# 1. Measuring time.perf_counter_ns() overhead
 total_overhead = 0
 for i in range(N_calibration):
     Tstart = time.perf_counter_ns()
@@ -21,9 +21,9 @@ for i in range(N_calibration):
 timeperf = total_overhead / N_calibration  # ← Division FLOTTANTE 
 print(f"[CALIBRATION] Overhead time.perf_counter_ns() : {timeperf:.2f} ns")
 
-# 2. Mesure de l'overhead de .sum() sur tableau vide
+# 2. Measuring .sum() overhead on an empty array
 total_sum_overhead = 0
-a = np.array([], dtype=np.uint64)  # Cohérence de type
+a = np.array([], dtype=np.uint64) 
 result = np.zeros((), dtype=np.uint64)
 
 for i in range(N_calibration):
@@ -32,13 +32,13 @@ for i in range(N_calibration):
     t_final = time.perf_counter_ns()
     total_sum_overhead += (t_final - t_init)
 
-time_sum = total_sum_overhead / N_calibration  # ← Division FLOTTANTE 
+time_sum = total_sum_overhead / N_calibration  
 print(f"[CALIBRATION] Overhead .sum() : {time_sum:.2f} ns")
 print(f"[CALIBRATION] Overhead total (read) : {timeperf + time_sum:.2f} ns")
 print(f"[CALIBRATION] Overhead total (write) : {timeperf:.2f} ns\n")
 
 # ============================================================================
-# SEQUENTIAL READ (Version Corrigée)
+# SEQUENTIAL READ (Corrected Version)
 # ============================================================================
 
 def sequential_read(size_bytes, iterations):
@@ -58,7 +58,7 @@ def sequential_read(size_bytes, iterations):
     src = np.ones(size, dtype=np.uint64)  # ← Type cohérent
     result = np.zeros((), dtype=np.uint64)
     
-    all_latencies_raw = []  # ← Stocker les valeurs BRUTES
+    all_latencies_raw = []  
     
     # Chronométrage PURE de l'opération (sans calculs statistiques)
     t_start = time.perf_counter()
@@ -70,14 +70,14 @@ def sequential_read(size_bytes, iterations):
     t_end = time.perf_counter()
     
     # ========================================================================
-    # Calculs statistiques APRÈS le chronométrage (évite la pollution)
+    # Statistical calculations AFTER timing (avoids pollution)
     # ========================================================================
     
-    stat = np.zeros(4, dtype=np.float64)  # ← float64 pour précision
+    stat = np.zeros(4, dtype=np.float64)  
     stat[0] = np.inf  # Min
     stat[1] = -np.inf  # Max
-    # stat[2] = somme
-    # stat[3] = somme des carrés
+    # stat[2] = sum
+    # stat[3] = sum of squares
     
     overhead = (timeperf + time_sum) 
     
@@ -89,7 +89,7 @@ def sequential_read(size_bytes, iterations):
         stat[3] += lat**2
     
     # ========================================================================
-    # Calculs finaux
+    # Final calculations
     # ========================================================================
     
     # Débit (bandwidth)
@@ -117,7 +117,7 @@ def sequential_read(size_bytes, iterations):
 
 
 # ============================================================================
-# SEQUENTIAL WRITE (Version Corrigée)
+# SEQUENTIAL WRITE (Corrected Version)
 # ============================================================================
 
 def sequential_write(size_bytes, iterations):
@@ -134,19 +134,19 @@ def sequential_write(size_bytes, iterations):
          min_lat_iter, max_lat_iter, std_per_element, all_latencies)
     """
     size = size_bytes // 8
-    arr = np.zeros(size, dtype=np.uint64)  # ← Initialiser à 0 
+    arr = np.zeros(size, dtype=np.uint64)  
     
     all_latencies_raw = []
     
     t_start = time.perf_counter()
     for _ in range(iterations):
         t0 = time.perf_counter_ns()
-        arr[:] = 1  # Écrire 1 (différent de l'initialisation)
+        arr[:] = 1  
         t1 = time.perf_counter_ns()
         all_latencies_raw.append(t1 - t0)
     t_end = time.perf_counter()
     
-    # Statistiques
+    # Statistics
     stat = np.zeros(4, dtype=np.float64)
     stat[0] = np.inf
     stat[1] = -np.inf
@@ -160,7 +160,7 @@ def sequential_write(size_bytes, iterations):
         stat[2] += lat
         stat[3] += lat**2
     
-    # Calculs
+    # Calculations
     bytes_processed = size_bytes * iterations
     gb_s = bytes_processed / (t_end - t_start) / (1024**3)
     
@@ -206,8 +206,8 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
     size = size_bytes // 8
     arr = np.ones(size, dtype=np.uint64)
 
-    # PRÉ-GÉNÉRER tous les indices AVANT le chronométrage
-    print("Pré-génération des indices...")
+    # PRE-GENERATE all indices BEFORE timing
+    print("Pre-generating indices...")
     all_indices = []
     for _ in range(iterations):
         idx = np.random.randint(0, size, batch)
@@ -217,7 +217,7 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
     all_latencies_raw = []
 
 
-    # Chronométrage PURE de l'accès mémoire (sans génération d'indices)
+    # PURE memory access timing (without index generation)
     t_start = time.perf_counter()
     for idx in all_indices:
         t0 = time.perf_counter_ns()
@@ -228,7 +228,7 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
 
 
     # ========================================================================
-    # Calculs statistiques
+    # Statistic calculations
     # ========================================================================
     
     stat = np.zeros(4, dtype=np.float64)
@@ -245,38 +245,32 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
         stat[3] += lat**2
 
     # ========================================================================
-    # Calculs finaux
+    # Final calculations
     # ========================================================================
     
-    # Opérations par seconde (IOPS)
+    # Opérations per second (IOPS)
     total_ops = batch * iterations
     ops_s = total_ops / (t_end - t_start)
     
-    # Latence par batch (temps pour traiter 'batch' accès aléatoires)
+    # Latency per batch (time for processing 'batch' random access )
     avg_lat_batch = stat[2] / iterations
     min_lat_batch = stat[0]
     max_lat_batch = stat[1]
 
         
-    # Latence par élément (temps moyen pour UN accès aléatoire)
+    # Latency per element (average time for one random access)
     avg_lat_ns = avg_lat_batch / batch
     min_ns = min_lat_batch / batch
     max_ns = max_lat_batch / batch
 
-    # Écart-type par batch
+    # Standard deviation per batch
     variance = (stat[3] / iterations) - (avg_lat_batch**2)
     std_batch = np.sqrt(max(0, variance))
 
 
-    # NOTE : La division par 'batch' pour obtenir std_per_element est une
-    # approximation. Les accès aléatoires ne sont PAS indépendants à cause
-    # des effets de cache. La vraie variance par élément nécessiterait de
-    # mesurer chaque accès individuellement.
+    # NOTE : Dividing by 'batch' to get std_per_element is an approximation.
+    # Random accesses are NOT independent due to cache effects.
     std_per_element = std_batch / batch
-
-    #ratio = size / batch
-    # Conversions : Ici on divise par 'batch' car lat correspond à un lot de 'batch' accès
-    #avg_lat_iter = (stat[2] / iterations) * ratio
 
 
     return (ops_s, t_end - t_start, avg_lat_ns, min_ns, max_ns,
@@ -308,21 +302,21 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
     arr = np.ones(size, dtype=np.uint64)
 
     # ========================================================================
-    # Pré-générer indices ET valeurs AVANT le chronométrage
+    # PRE-GENERATE all indices BEFORE timing
     # ========================================================================
     print(f"[INFO] Pré-génération de {iterations} batchs (indices + valeurs)...")
     all_indices = []
     all_values = []
     for _ in range(iterations):
         idx = np.random.randint(0, size, batch)
-        vals = np.random.rand(batch) * 100  # Valeurs float entre 0 et 100
+        vals = np.random.rand(batch) * 100  # float values between 0 and 100
         all_indices.append(idx)
         all_values.append(vals)
     print("[OK]")
 
     all_latencies_raw = []
     
-    # Chronométrage PURE de l'écriture mémoire
+    # PURE memory access timing (without index generation)
     t_start = time.perf_counter()
     for idx, vals in zip(all_indices, all_values):
         t0 = time.perf_counter_ns()
@@ -333,7 +327,7 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
 
 
     # ========================================================================
-    # Calculs statistiques
+    # Statistics calculations
     # ========================================================================
     
     stat = np.zeros(4, dtype=np.float64)
@@ -351,20 +345,20 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
 
 
     # ========================================================================
-    # Calculs finaux
+    # Final calculations
     # ========================================================================
     
-    # Opérations par seconde (IOPS)
+    # Opérations per second (IOPS)
     total_ops = batch * iterations
     ops_s = total_ops / (t_end - t_start)
     
-    # Latence par batch
+    # Latency per batch
     avg_lat_batch = stat[2] / iterations
     min_lat_batch = stat[0]
     max_lat_batch = stat[1]
 
 
-    # Latence par élément
+    # Latency per element
     avg_lat_ns = avg_lat_batch / batch
     min_ns = min_lat_batch / batch
     max_ns = max_lat_batch / batch
@@ -392,29 +386,26 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
 
 if __name__ == "__main__":
 
-    #try:
-        #os.sched_setaffinity(0, {0})
-        #print(f"[INFO] Processus épinglé sur le Cœur 0")
-    #except AttributeError:
+    try:
+        os.sched_setaffinity(0, {0})
+        print(f"[INFO] Processus épinglé sur le Cœur 0")
+    except AttributeError:
         # Cas particulier pour Windows ou systèmes ne supportant pas sched_setaffinity
-        #print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
+        print("[WARNING] sched_setaffinity n'est pas disponible sur ce système.")
 
-    # GESTION UNIQUE DU SEED ICI (Global pour toutes les fonctions)
+    # GLOBAL SEED MANAGEMENT (Global for all functions)
     np.random.seed(0)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode",
                         choices=["sequential_read", "sequential_write", "random_read", "random_write", "sequentiail_read_with_stride"],  # , "stride"
                         default="sequential_read")
-    parser.add_argument("--size-bytes", type=int, default=1024*1024*1024) # 1 Go par défaut
+    parser.add_argument("--size-bytes", type=int, default=1024*1024*1024) # 1 Go by default
     parser.add_argument("--iters", type=int, default=10000)
-    #parser.add_argument("--duration", type=int, default=10)
     parser.add_argument("--procs", type=int, default=1)
     parser.add_argument("--batch", type=int, default=50000)
     parser.add_argument("--stride-kb", type=int, default=64)
     args = parser.parse_args()
-
-    # NOTE : Mise à jour des prints pour afficher Avg (Moyenne), Min et Max.
 
 
     if args.mode == "sequential_read":

@@ -18,6 +18,17 @@ if command -v lstopo &> /dev/null; then
     lstopo --output-format png "$RESULTS_DIR/system_topology.png" --no-io
 fi
 
+
+# 1. Le graphe du test sequentiel 
+echo ""
+echo "--- PHASE 1 : Micro-Analyse (mode sequentiel) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
+
+# 2. Le graphe du test aleatiore 
+echo ""
+echo "--- PHASE 4 : Micro-Analyse (mode aleatoire) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
+
 # 2. Script habituel pour capturer les metriques perf
 echo ""
 echo "--- PHASE 1 : Script Standard (CSV) ---"
@@ -25,7 +36,7 @@ taskset -c $TARGET_THREAD $PYTHON_CMD script.py
 
 # 3. Le graphe Micro (Escalier)
 echo ""
-echo "--- PHASE 2 : Micro-Analyse (Graphique Escalier) ---"
+echo "--- PHASE 3 : Micro-Analyse (Graphique Escalier) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
 
 # 4. Le graphe Macro (Latence pour lire le tableau entier en une iteration)
@@ -37,17 +48,6 @@ taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
 #echo ""
 #echo "--- PHASE 4 : Analyse Scientifique (Corrélation & Misses) ---"
 #taskset -c $TARGET_THREAD $PYTHON_CMD run_scientific_analysis.py
-
-# 5. Le graphe du test sequentiel 
-echo ""
-echo "--- PHASE 4 : Micro-Analyse (mode sequentiel) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
-
-
-# 6. Le graphe du test sequentiel 
-echo ""
-echo "--- PHASE 4 : Micro-Analyse (mode aleatoire) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
 
 # 6. Displot de correlation 
 #echo ""

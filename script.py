@@ -6,7 +6,7 @@ import time
 import matplotlib.pyplot as plt
 
 # ------------------ CONFIG ------------------
-patterns = ["sequential_read", "sequential_write"] #"random_read", #"random_write"]
+patterns = ["sequential_read", "sequential_write"] 
 
 sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
 ITERS_SEQ = 20000   
@@ -23,13 +23,13 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 
-# ------------------ NOUVELLE FONCTION GRAPHIQUE ------------------
+# ------------------ NEW PLOTTING FUNCTION ------------------
 def generate_scientific_plots(df, output_dir):
-    """Génère les graphiques de corrélation pour chaque mode et l'IPC global"""
+    """Generates correlation plots for each mode and the global IPC"""
     plt.style.use('seaborn-v0_8-muted')
-    l3_limit_kb = 4096  # Ta limite spécifique de 4 Mo
+    l3_limit_kb = 4096  #  specific limit 4 Mo
 
-    # 1. Graphique IPC Global
+    # 1. IPC plot 
     plt.figure(figsize=(12, 7))
     for pattern in df['pattern'].unique():
         subset = df[df['pattern'] == pattern]
@@ -37,15 +37,15 @@ def generate_scientific_plots(df, output_dir):
     
     plt.axvline(x=l3_limit_kb, color='red', linestyle='--', linewidth=2, label='Limite L3 (4Mo)')
     plt.xscale('log')
-    plt.xlabel('Taille du tableau (Ko)')
+    plt.xlabel('Array Size (KB)')
     plt.ylabel('IPC (Instructions Per Cycle)')
-    plt.title('Efficience du CPU (IPC) vs Taille du Working Set')
+    plt.title('CPU Efficiency (IPC) vs Working Set Size')
     plt.legend()
     plt.grid(True, which="both", ls="-", alpha=0.5)
-    plt.savefig(os.path.join(output_dir, "perf_ipc_vs_size.png"))
+    plt.savefig(os.path.join(output_dir, "perf_ipc_vs_size_eng.png"))
     plt.close()
 
-    # 2. Graphiques de Corrélation par Mode
+    # 2. correlation plots by mode
     for mode in df['pattern'].unique():
         df_mode = df[df['pattern'] == mode]
         fig, ax1 = plt.subplots(figsize=(10, 6))
@@ -66,7 +66,7 @@ def generate_scientific_plots(df, output_dir):
         ax2.tick_params(axis='y', labelcolor=color_miss)
 
         ax1.axvline(x=l3_limit_kb, color='black', linestyle=':', alpha=0.5)
-        plt.title(f'Corrélation Latence vs Défauts L3 : {mode.replace("_", " ").title()}')
+        plt.title(f'Latency vs L3 Miss Correlation : {mode.replace("_", " ").title()}')
         fig.tight_layout()
         plt.savefig(os.path.join(output_dir, f"correlation_{mode}.png"))
         plt.close()
@@ -74,7 +74,7 @@ def generate_scientific_plots(df, output_dir):
 
 #-------------Topology--------------
 def capture_system_topology():
-    """Capture la topologie du système avec lstopo"""
+    """Captures system topology using lstopo"""
     try:
         img_path = os.path.join(output_dir, "system_topology.png")
         subprocess.run(["lstopo", "--output-format", "png", img_path],
@@ -83,11 +83,11 @@ def capture_system_topology():
         )
         print(f"Topology graphic saved in : {img_path}")
     except:
-        print("lstopo non disponible")
+        print("lstopo utility not available")
 
 # ------------------ FUNCTION ------------------
 def run_perf(mode, size_val, unit="kb", stride_val=None):
-    """Lance mem_stress3.py avec perf et récupère les métriques"""
+    """Runs mem_stress3.py with perf and collects hardware metrics"""
 
     if unit == "kb":
         size_bytes = int(size_val * 1024)
@@ -234,7 +234,7 @@ df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full_seq.csv"), ind
 print("\n=== TERMINE ===")
 #print(df)
 # Affiche uniquement les colonnes essentielles pour ton analyse
-print("\n=== APERÇU DES PERFORMANCES ===")
+print("\n=== PERFORMANCE OVERVIEW ===")
 print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_misses","TLB_misses"]].to_string(index=False))
 
 
@@ -242,4 +242,4 @@ print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_mi
 # On appelle la génération des graphiques ICI
 generate_scientific_plots(df, output_dir)
 
-print("\n=== TERMINE : Résultats et Graphiques dans le dossier 'results/perf' ===")
+print("\n=== FINISHED: Results and Graphics in 'results/perf' directory ===")

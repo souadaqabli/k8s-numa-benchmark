@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import mem_stress3
 import numpy as np
 import os
-import pandas as pd  # <--- Assurez-vous d'ajouter cet import
+import pandas as pd  
 import seaborn as sns
 
 
 def run_comparison_sequential():
-    print("=== Analyse Séquentielle : STD vs Min/Max ===")
+    print("=== Sequential analysis: STD vs Min/Max ===")
     
     # 32 Ko = L1, 256 Ko = L2, 4 Mo+ = L3/RAM
     target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
@@ -45,9 +45,8 @@ def run_comparison_sequential():
         data['Seq Read']['y_err_high'].append(maxi - avg)
 
         # 2. SEQUENTIAL WRITE
-        # Warmup (Optionnel selon tes besoins, décommenté ici pour cohérence)
+        # Warmup (
         #mem_stress3.sequential_write(real_size_bytes, 5000)
-        # mem_stress3.sequential_write(real_size_bytes, 20)
         res_sw = mem_stress3.sequential_write(real_size_bytes, ITERS_SEQ)
         avg, mini, maxi, std = res_sw[2] , res_sw[3], res_sw[4], res_sw[8]
         
@@ -59,9 +58,9 @@ def run_comparison_sequential():
 
 
     # =================================================================
-    # AJOUT DU BLOC RÉGRESSION LINÉAIRE (SEABORN)
+    # LINEAR REGRESSION - FITTING (SEABORN)
     # =================================================================
-    print("\n[INFO] Analyse de la dilution de l'overhead...")
+    print("\n[INFO] Overhead dilution analysis...")
     rows = []
     for mode in ['Seq Read', 'Seq Write']:
         for i in range(len(data[mode]['x'])):
@@ -87,13 +86,12 @@ def run_comparison_sequential():
     plt.ylabel("Latence Mesurée (ns)", fontsize=12)
     plt.ylim(0, 10) 
     plt.tight_layout()
-    # On ne fait pas plt.show() tout de suite pour laisser le graphique suivant s'afficher
-    # ou on peut le faire si tu veux voir les deux séparément.
+
     plt.show()
 
 
     # --- Tracé ---
-    print("\n[INFO] Génération du graphique...")
+    print("\n[INFO] GENERATING PLOTS..")
     plt.figure(figsize=(12, 8))
     
     # Légers décalages pour ne pas superposer les points bleus et rouges
@@ -119,28 +117,27 @@ def run_comparison_sequential():
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=std_error, 
-            label=label,          # Le label pour la légende
-            fmt='o',              # Point rond pour la moyenne
+            label=label,          # Legend
+            fmt='o',              # average
             color=d['c'],         
-            elinewidth=3,         # <--- LIGNE ÉPAISSE pour la STD
-            capsize=0,            # Pas de chapeau pour la STD (plus propre)
+            elinewidth=3,         # STD
+            capsize=0,            
             markersize=6,
             alpha=0.9,
-            zorder=5              # S'affiche au-dessus du reste
+            zorder=5             
         )
 
-        # --- COUCHE 2 : Le Min/Max (Le Bruit/Outliers) ---
-        # On trace ceci en DEUXIÈME, en FIN et TRANSPARENT
+        # --- COUCHE 2 : Le Min/Max (Outliers) ---
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=asymmetric_error, 
-            fmt='none',           # Pas de point (déjà dessiné au-dessus)
-            ecolor=d['c'],        # Même couleur
-            elinewidth=1,       # <--- LIGNE FINE pour Min/Max
-            capsize=4,            # Chapeaux pour bien voir les limites
+            fmt='none',           
+            ecolor=d['c'],       
+            elinewidth=1,           # tiny line for Min/Max
+            capsize=4,            
             markeredgewidth=0.8,
-            alpha=0.4,            # Transparence pour ne pas polluer
-            zorder=4              # S'affiche en dessous
+            alpha=0.4,            
+            zorder=4              
         )
 
     plt.xscale('log')
@@ -155,16 +152,16 @@ def run_comparison_sequential():
     plt.ylim(0, 10)
 
     # Titres et Grille
-    plt.xlabel('Taille du Bloc Mémoire (Ko)', fontsize=12, fontweight='bold')
-    plt.ylabel('Latence (ns) [Point=Moy | Épais=STD | Fin=Min/Max]', fontsize=11, fontweight='bold')
-    plt.title(f'Performance Séquentielle : Stabilité vs Perturbations\n({ITERS_SEQ} itérations)', fontsize=14)
+    plt.xlabel('Memory Block Size (KB)', fontsize=12, fontweight='bold')
+    plt.ylabel('Latency (ns) [Point=Mean | Bold=STD | Thin=Min/Max]', fontsize=11, fontweight='bold')
+    plt.title(f'Sequential Performance: Stability vs Perturbations\n({ITERS_SEQ} itérations)', fontsize=14)
 
     plt.grid(True, which="major", ls="-", alpha=0.6)
-    plt.grid(True, which="minor", ls=":", alpha=0.3) # Grille mineure utile en log
+    plt.grid(True, which="minor", ls=":", alpha=0.3) 
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_versionClaude_correction.png")
+    save_path = os.path.join(output_dir, "analyse_seq_moins_overhead_version_finale_eng.png")
     #save_path = os.path.join(output_dir, "analyse_seq_initiale.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
