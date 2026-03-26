@@ -26,19 +26,19 @@ taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
 
 # 2. Script to capture metrics perf and plot ipc vs size
 echo ""
-echo "--- PHASE 3 : Script Standard (CSV) ---"
+echo "--- PHASE 2 : Script Standard (CSV) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD script.py
 
 # 3. Random test plot 
 echo ""
-echo "--- PHASE 4 : Micro-Analyse (mode aleatoire) ---"
+echo "--- PHASE 3 : Micro-Analyse (Random mode) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
 
 
 
 # 3. Plot of sequential and random (to validate after)
 echo ""
-echo "--- PHASE 3 : Micro-Analyse (Graphique Escalier) ---"
+echo "--- PHASE 4 : Micro-Analyse (Step plot) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
 
 
