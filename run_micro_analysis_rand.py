@@ -122,7 +122,7 @@ def run_comparison_random():
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_20000_Vclaude2.png")
+    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_20000_Version_finale.png")
     plt.savefig(save_path)
     print(f"[OK] Graphique sauvegardé : {save_path}")
     plt.show()

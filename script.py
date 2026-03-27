@@ -208,4 +208,4 @@ print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_mi
 
 generate_scientific_plots(df, output_dir)
 
-print("\n=== FINISHED: Results and Graphics in 'results/perf' directory ===")
+print("\n=== FINISHED: Results and Graphics in 'results/perf/seq' directory ===")

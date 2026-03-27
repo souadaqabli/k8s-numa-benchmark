@@ -18,16 +18,16 @@ if command -v lstopo &> /dev/null; then
     lstopo --output-format png "$RESULTS_DIR/system_topology.png" --no-io
 fi
 
-
-# 1. Sequential test plot
+# 1. Script to capture metrics perf and plot ipc vs size
 echo ""
-echo "--- PHASE 1 : Micro-Analyse (sequential mode) ---"
+echo "--- PHASE 1 : Script Standard (CSV) ---"
+taskset -c $TARGET_THREAD $PYTHON_CMD script.py
+
+# 2. Sequential test plot
+echo ""
+echo "--- PHASE 2 : Micro-Analyse (sequential mode) ---"
 taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
 
-# 2. Script to capture metrics perf and plot ipc vs size
-echo ""
-echo "--- PHASE 2 : Script Standard (CSV) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD script.py
 
 # 3. Random test plot 
 echo ""
