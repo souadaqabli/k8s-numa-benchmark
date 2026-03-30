@@ -10,7 +10,7 @@ def run_comparison_sequential():
     print("=== Sequential analysis: STD vs Min/Max ===")
     
     # 32 Ko = L1, 256 Ko = L2, 4 Mo+ = L3/RAM
-    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
+    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536,131072,  262144, 524288,  1048576]
     
     output_dir = "results/analyse_seq"
     if not os.path.exists(output_dir):

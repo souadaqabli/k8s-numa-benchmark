@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # ------------------ CONFIG ------------------
 patterns = ["sequential_read", "sequential_write"] 
 
-sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536]
+sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072,  262144, 524288,  1048576 ]
 ITERS_SEQ = 20000   
 ITERS_RAND = 20000
 batch = 20000
