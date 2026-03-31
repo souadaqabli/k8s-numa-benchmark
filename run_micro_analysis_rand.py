@@ -18,8 +18,8 @@ def run_comparison_random():
         'Rand Write':  {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#2ca02c'},
     }
     
-    ITERS_RAND = 20000 
-    BATCH_SIZE = 20000
+    ITERS_RAND = 2000 
+    BATCH_SIZE = 2000
 
     for size_kb in target_sizes_kb:
         if size_kb < 1024:

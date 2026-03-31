@@ -21,7 +21,7 @@ def run_comparison_sequential():
         'Seq Write':  {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#d62728'},
     }
     
-    ITERS_SEQ = 20000 
+    ITERS_SEQ = 2000 
 
     for size_kb in target_sizes_kb:
         if size_kb < 1024:

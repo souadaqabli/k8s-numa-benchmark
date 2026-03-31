@@ -23,8 +23,8 @@ def run_comparison():
         'Rand Write': {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#2ca02c'}
     }
     
-    ITERS_SEQ = 20000   # Number of full passes over the array
-    ITERS_RAND = 20000  # Number of batches of access
+    ITERS_SEQ = 2000   # Number of full passes over the array
+    ITERS_RAND = 2000  # Number of batches of access
     BATCH_SIZE = 20000
 
     for size_kb in target_sizes_kb:
