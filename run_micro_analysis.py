@@ -10,7 +10,7 @@ def run_comparison():
     # 32 Ko = L1 typique
     # 256 Ko = L2 typique
     # 4096 Ko (4 Mo) et plus = L3 puis RAM
-    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072,  262144, 524288,  1048576, 2097152, 3145728]
+    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072,  262144, 524288,  1048576] # 2097152, 3145728
     
     output_dir = "results/analysis_4modes"
     if not os.path.exists(output_dir):

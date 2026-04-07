@@ -18,7 +18,7 @@ for i in range(N_calibration):
     Tend = time.perf_counter_ns()
     total_overhead += (Tend - Tstart)
 
-timeperf = total_overhead / N_calibration  # ← Division FLOTTANTE 
+timeperf = total_overhead / N_calibration  
 print(f"[CALIBRATION] Overhead time.perf_counter_ns() : {timeperf:.2f} ns")
 
 # 2. Measuring .sum() overhead on an empty array
@@ -65,7 +65,7 @@ def sequential_read(size_bytes, iterations):
         t0 = time.perf_counter_ns()
         src.sum(out=result)
         t1 = time.perf_counter_ns()
-        all_latencies_raw.append(t1 - t0)  # Stocker brut
+        all_latencies_raw.append(t1 - t0)  
     t_end = time.perf_counter()
     
     # ========================================================================
@@ -183,7 +183,7 @@ def sequential_write(size_bytes, iterations):
 # -------------------------------------------------------------------
 # 3. RANDOM read (random access + latency)
 # -------------------------------------------------------------------
-def random_access_test(size_bytes, iterations, batch, apply_correction=False):
+def random_access_test(size_bytes, iterations, batch ):
     """
     Measures random read access operations and average latency.
     
@@ -277,7 +277,7 @@ def random_access_test(size_bytes, iterations, batch, apply_correction=False):
 # -------------------------------------------------------------------
 # 4. RANDOM WRITE (Aggressive Random Writes)
 # -------------------------------------------------------------------
-def random_write_test(size_bytes, iterations, batch, apply_correction=False):
+def random_write_test(size_bytes, iterations, batch):
     """
     Measures random write access operations and average latency.
     
@@ -381,11 +381,12 @@ def random_write_test(size_bytes, iterations, batch, apply_correction=False):
 if __name__ == "__main__":
 
     try:
-        os.sched_setaffinity(0, {0})
-        print(f"[INFO] Process pinned to Core 0")
+        affinity = os.sched_getaffinity(0)
+        print(f"[INFO] Process pinned to Cores: {affinity}")
     except AttributeError:
         # Particular case for Windows or systems not supporting sched_setaffinity
         print("[WARNING] sched_setaffinity not available on this system.")
+
 
     # GLOBAL SEED MANAGEMENT (Global for all functions)
     np.random.seed(0)
