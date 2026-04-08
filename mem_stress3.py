@@ -57,6 +57,11 @@ def sequential_read(size_bytes, iterations):
     src = np.ones(size, dtype=np.uint64)  # ← Type cohérent
     result = np.zeros((), dtype=np.uint64)
     
+    # warmup phase to avoid negative latencies and load src in cache
+    WARMUP = 50
+    for _ in range(WARMUP):
+        src.sum(out=result)
+
     all_latencies_raw = []  
     
     # Chronométrage PURE de l'opération (sans calculs statistiques)
@@ -81,7 +86,8 @@ def sequential_read(size_bytes, iterations):
     overhead = (timeperf + time_sum) 
     
     for lat_raw in all_latencies_raw:
-        lat = lat_raw - overhead
+        #lat = lat_raw - overhead
+        lat = max(0.0, lat_raw - overhead)
         stat[0] = min(stat[0], lat)
         stat[1] = max(stat[1], lat)
         stat[2] += lat
@@ -135,7 +141,11 @@ def sequential_write(size_bytes, iterations):
     arr = np.zeros(size, dtype=np.uint64)  
     
     all_latencies_raw = []
-    
+    # Warmup
+    WARMUP = 50
+    for _ in range(WARMUP):
+        arr[:] = 1
+
     t_start = time.perf_counter()
     for _ in range(iterations):
         t0 = time.perf_counter_ns()
@@ -152,7 +162,8 @@ def sequential_write(size_bytes, iterations):
     overhead = timeperf 
     
     for lat_raw in all_latencies_raw:
-        lat = lat_raw - overhead
+        #lat = lat_raw - overhead
+        lat = max(0.0, lat_raw - overhead)
         stat[0] = min(stat[0], lat)
         stat[1] = max(stat[1], lat)
         stat[2] += lat
