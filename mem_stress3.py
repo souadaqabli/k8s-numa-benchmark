@@ -4,6 +4,7 @@ import numpy as np
 import time
 import os
 import argparse
+import gc
 
 # ============================================================================
 # CALIBRATION (Run ONCE at startup)
@@ -63,6 +64,9 @@ def sequential_read(size_bytes, iterations):
         src.sum(out=result)
 
     all_latencies_raw = []  
+
+    gc.disable()
+    gc.collect()
     
     # Chronométrage PURE de l'opération (sans calculs statistiques)
     t_start = time.perf_counter()
@@ -72,6 +76,8 @@ def sequential_read(size_bytes, iterations):
         t1 = time.perf_counter_ns()
         all_latencies_raw.append(t1 - t0)  
     t_end = time.perf_counter()
+
+    gc.enable()
     
     # ========================================================================
     # Statistical calculations AFTER timing (avoids pollution)
@@ -145,7 +151,9 @@ def sequential_write(size_bytes, iterations):
     WARMUP = 50
     for _ in range(WARMUP):
         arr[:] = 1
-
+    
+    gc.disable()
+    gc.collect()
     t_start = time.perf_counter()
     for _ in range(iterations):
         t0 = time.perf_counter_ns()
@@ -153,6 +161,7 @@ def sequential_write(size_bytes, iterations):
         t1 = time.perf_counter_ns()
         all_latencies_raw.append(t1 - t0)
     t_end = time.perf_counter()
+    gc.enable()
     
     # Statistics
     stat = np.zeros(4, dtype=np.float64)
@@ -224,7 +233,8 @@ def random_access_test(size_bytes, iterations, batch ):
     
     all_latencies_raw = []
 
-
+    gc.disable()
+    gc.collect()
     # PURE memory access timing (without index generation)
     t_start = time.perf_counter()
     for idx in all_indices:
@@ -233,7 +243,7 @@ def random_access_test(size_bytes, iterations, batch ):
         t1 = time.perf_counter_ns()
         all_latencies_raw.append(t1 - t0)
     t_end = time.perf_counter()
-
+    gc.enable() 
 
     # ========================================================================
     # Statistic calculations
@@ -323,6 +333,8 @@ def random_write_test(size_bytes, iterations, batch):
 
     all_latencies_raw = []
     
+    gc.disable()
+    gc.collect()
     # PURE memory access timing (without index generation)
     t_start = time.perf_counter()
     for idx, vals in zip(all_indices, all_values):
@@ -331,6 +343,7 @@ def random_write_test(size_bytes, iterations, batch):
         t1 = time.perf_counter_ns()
         all_latencies_raw.append(t1 - t0)
     t_end = time.perf_counter()
+    gc.enable()
 
 
     # ========================================================================
