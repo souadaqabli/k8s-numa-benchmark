@@ -1,6 +1,9 @@
 #!/bin/bash
 # CONFIGURATION
-RESULTS_DIR="results"
+
+POD_ID=${POD_ID:-"local"}
+RESULTS_DIR="results/${POD_ID}"
+mkdir -p "$RESULTS_DIR"
 
 TARGET_THREAD=2
 

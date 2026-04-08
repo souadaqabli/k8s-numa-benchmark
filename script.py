@@ -15,7 +15,9 @@ batch = 20000
 
 
 results = []
-output_dir = "results/perf/seq"
+# output_dir = "results/perf/seq"
+POD_ID = os.environ.get("POD_ID", "local")
+output_dir = f"results/{POD_ID}/perf/seq"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
