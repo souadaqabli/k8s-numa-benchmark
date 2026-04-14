@@ -1,15 +1,32 @@
 #!/bin/bash
+
 POD_ID=${POD_ID:-"local"}
-TARGET_THREAD=${TARGET_CORE:-0} # Or 2 depends on NUMA test
+TARGET_NODE=${TARGET_CORE:-0}
+
+echo "=============================="
+echo "POD: $POD_ID"
+echo "NUMA NODE: $TARGET_NODE"
+echo "=============================="
 
 echo "--- PHASE 1 : Collecting Data ---"
-# Ce script va lancer mem_stress3, récupérer Perf, Latence, Min, Max, STD et sauver le CSV
-taskset -c $TARGET_THREAD python3 script.py
+
+# Vérifie si numactl est dispo
+if command -v numactl &> /dev/null
+then
+    echo "[INFO] Running with NUMA binding"
+    
+    numactl --cpunodebind=$TARGET_NODE --membind=$TARGET_NODE \
+        python3 script.py
+else
+    echo "[WARNING] numactl not found, fallback to taskset"
+    
+    taskset -c $TARGET_NODE python3 script.py
+fi
 
 echo "--- PHASE 2 : Generating plots ---"
-# Ces scripts ne font QUE lire le CSV et générer les images (plus de calculs CPU)
+
+# Moins critique → pas besoin de pinning strict
 python3 run_micro_analysis_seq.py
 python3 run_micro_analysis_rand.py
-# python3 run_micro_analysis.py
 
 echo "FINISHED !"
