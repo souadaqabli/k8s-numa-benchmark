@@ -8,8 +8,8 @@ taskset -c $TARGET_THREAD python3 script.py
 
 echo "--- PHASE 2 : Generating plots ---"
 # Ces scripts ne font QUE lire le CSV et générer les images (plus de calculs CPU)
-python3 plot_micro_analysis_seq.py
-python3 plot_micro_analysis_rand.py
-python3 plot_micro_analysis_global.py
+python3 run_micro_analysis_seq.py
+python3 run_micro_analysis_rand.py
+# python3 run_micro_analysis.py
 
 echo "FINISHED !"
