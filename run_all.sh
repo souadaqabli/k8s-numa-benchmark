@@ -1,6 +1,6 @@
 #!/bin/bash
 POD_ID=${POD_ID:-"local"}
-TARGET_THREAD=0 # Or 2 depends on NUMA test
+TARGET_THREAD=${TARGET_CORE:-0} # Or 2 depends on NUMA test
 
 echo "--- PHASE 1 : Collecting Data ---"
 # Ce script va lancer mem_stress3, récupérer Perf, Latence, Min, Max, STD et sauver le CSV
