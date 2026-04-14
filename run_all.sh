@@ -1,51 +1,15 @@
 #!/bin/bash
-# CONFIGURATION
-
 POD_ID=${POD_ID:-"local"}
-RESULTS_DIR="results/${POD_ID}"
-mkdir -p "$RESULTS_DIR"
+TARGET_THREAD=0 # Or 2 depends on NUMA test
 
-TARGET_THREAD=2
+echo "--- PHASE 1 : Collecting Data ---"
+# Ce script va lancer mem_stress3, récupérer Perf, Latence, Min, Max, STD et sauver le CSV
+taskset -c $TARGET_THREAD python3 script.py
 
-PYTHON_CMD="python3"
+echo "--- PHASE 2 : Generating plots ---"
+# Ces scripts ne font QUE lire le CSV et générer les images (plus de calculs CPU)
+python3 plot_micro_analysis_seq.py
+python3 plot_micro_analysis_rand.py
+python3 plot_micro_analysis_global.py
 
-mkdir -p "$RESULTS_DIR"
-
-echo "=================================================="
-echo "   AUTOMATED COMPLET BENCHMARK  (Coeur #$TARGET_THREAD)"
-echo "=================================================="
-
-# 1. Topologie (Si lstopo est installé)
-if command -v lstopo &> /dev/null; then
-    echo "[INFO] Topology Captured.."
-    lstopo --output-format png "$RESULTS_DIR/system_topology.png" --no-io
-fi
-
-# 1. Script to capture metrics perf and plot ipc vs size
-echo ""
-echo "--- PHASE 1 : Script Standard (CSV) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD script.py
-
-# 2. Sequential test plot
-echo ""
-echo "--- PHASE 2 : Micro-Analyse (sequential mode) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_seq.py
-
-
-# 3. Random test plot 
-echo ""
-echo "--- PHASE 3 : Micro-Analyse (Random mode) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis_rand.py
-
-
-
-# 3. Plot of sequential and random (to validate after)
-echo ""
-echo "--- PHASE 4 : Micro-Analyse (Step plot) ---"
-taskset -c $TARGET_THREAD $PYTHON_CMD run_micro_analysis.py
-
-
-echo ""
-echo "=================================================="
-echo "   FINISHED ! VERIFY FOLDER /results"
-echo "=================================================="
+echo "FINISHED !"

@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 import os
 import time
+import re
 import matplotlib.pyplot as plt
 
 # ------------------ CONFIG ------------------
@@ -22,28 +23,6 @@ output_dir = f"results/{POD_ID}/perf/seq"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-
-# ------------------ NEW PLOTTING FUNCTION ------------------
-def generate_scientific_plots(df, output_dir):
-    """Generates correlation plots for each mode and the global IPC"""
-    plt.style.use('seaborn-v0_8-muted')
-    l3_limit_kb = 4096  #  specific limit 4 Mo
-
-    # 1. IPC plot 
-    plt.figure(figsize=(12, 7))
-    for pattern in df['pattern'].unique():
-        subset = df[df['pattern'] == pattern]
-        plt.plot(subset['size_kb'], subset['IPC'], marker='o', label=pattern.replace("_", " "))
-    
-    plt.axvline(x=l3_limit_kb, color='red', linestyle='--', linewidth=2, label='Limite L3 (4Mo)')
-    plt.xscale('log')
-    plt.xlabel('Array Size (KB)')
-    plt.ylabel('IPC (Instructions Per Cycle)')
-    plt.title('CPU Efficiency (IPC) vs Working Set Size')
-    plt.legend()
-    plt.grid(True, which="both", ls="-", alpha=0.5)
-    plt.savefig(os.path.join(output_dir, "perf_ipc_vs_size_eng.png"))
-    plt.close()
 
 #-------------Topology--------------
 def capture_system_topology():
@@ -72,6 +51,9 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
     # 1. INITIALISATION 
     ops_or_bw = 0.0
     lat_ns = 0.0
+    min_ns = 0.0
+    max_ns = 0.0
+    std_ns = 0.0
     
 
     # Dynamic choice of iterations
@@ -117,12 +99,18 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
                     ops_or_bw = float(iops_str)
 
                 elif "Lat:" in part:
-                    # Extraction : "Lat: 0.31 ns (Min: 0.15, Max: 0.45)" → 0.31
-                    lat_str = part.split(":")[1].strip().split(" ")[0]
-                    lat_ns = float(lat_str)
+                    lat_match = re.search(r"Lat:\s*([0-9.]+)", part)
+                    min_match = re.search(r"Min:\s*([0-9.]+)", part)
+                    max_match = re.search(r"Max:\s*([0-9.]+)", part)
+                    std_match = re.search(r"Std:\s*([0-9.]+)", part)
+
+                    if lat_match: lat_ns = float(lat_match.group(1))
+                    if min_match: min_ns = float(min_match.group(1))
+                    if max_match: max_ns = float(max_match.group(1))
+                    if std_match: std_ns = float(std_match.group(1))
 
         elif "Stride" in line and "ops/s:" in line:
-            ops = float(line.split("ops/s:")[1].strip())
+            ops_or_bw = float(line.split("ops/s:")[1].strip())
 
     # -------- EXTRACTION PERF (Stderr) --------
     metrics = {
@@ -168,7 +156,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
 
     # Vérification du parsing
     if ops_or_bw == 0.0:
-        print(f"ERREUR : Parsing failed")
+        print(f"ERROR : Parsing failed")
         print(f"STDOUT:\n{proc.stdout}")
         print(f"STDERR:\n{proc.stderr[:500]}")
         return None
@@ -183,6 +171,9 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
         #"stride": stride_val if stride_val else 0,
         "ops_or_bw": ops_or_bw,
         "lat_ns": lat_ns,
+        "min_ns": min_ns,
+        "max_ns": max_ns,
+        "std_ns": std_ns,
         "IPC": ipc,
         "L1_misses": metrics["L1_misses"],
         "LLC_misses": metrics["LLC_misses"],
@@ -205,9 +196,6 @@ df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full_seq.csv"), ind
 print("\n=== FINISHED ===")
 #print(df)
 print("\n=== PERFORMANCE OVERVIEW ===")
-print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "IPC","L1_misses","LLC_misses","TLB_misses"]].to_string(index=False))
-
-
-generate_scientific_plots(df, output_dir)
+print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "std_ns", "IPC", "LLC_misses"]].to_string(index=False))
 
 print("\n=== FINISHED: Results and Graphics in 'results/perf/seq' directory ===")

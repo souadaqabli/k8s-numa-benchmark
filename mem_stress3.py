@@ -426,24 +426,28 @@ if __name__ == "__main__":
     parser.add_argument("--stride-kb", type=int, default=64)
     args = parser.parse_args()
 
+    elements = args.size_bytes // 8
+    if elements > 0:
+        dynamic_iters = max(20, 500_000_000 // elements)
+    else:
+        dynamic_iters = args.iters
 
     if args.mode == "sequential_read":
-        res = sequential_read(args.size_bytes, args.iters)
-        bw, avg_elem, min_elem, max_elem = res[0], res[2], res[3], res[4]
-        print(f"Seq Read {args.size_bytes} Bytes | BW: {bw:.2f} GB/s | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f})")
-
+        res = sequential_read(args.size_bytes, dynamic_iters)
+        bw, avg_elem, min_elem, max_elem, std = res[0], res[2], res[3], res[4], res[8]
+        print(f"Seq Read {args.size_bytes} Bytes | BW: {bw:.2f} GB/s | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f}, Std: {std:.2f})")
     elif args.mode == "sequential_write":
-        res = sequential_write(args.size_bytes, args.iters)
-        bw, avg_elem, min_elem, max_elem = res[0], res[2], res[3], res[4]
-        print(f"Seq Write {args.size_bytes} Bytes | BW: {bw:.2f} GB/s | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f})")
+        res = sequential_write(args.size_bytes, dynamic_iters)
+        bw, avg_elem, min_elem, max_elem, std = res[0], res[2], res[3], res[4], res[8]
+        print(f"Seq Write {args.size_bytes} Bytes | BW: {bw:.2f} GB/s | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f}, Std: {std:.2f})")
         
     elif args.mode == "random_read":
-        res = random_access_test(args.size_bytes, args.iters, args.batch)
-        ops_s, avg_elem, min_elem, max_elem = res[0], res[2], res[3], res[4]
-        print(f"Rand Read {args.size_bytes} Bytes | IOPS: {ops_s:.0f} | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f})")
+        res = random_access_test(args.size_bytes, dynamic_iters, args.batch)
+        ops_s, avg_elem, min_elem, max_elem, std = res[0], res[2], res[3], res[4], res[8]
+        print(f"Rand Read {args.size_bytes} Bytes | IOPS: {ops_s:.0f} | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f}, Std: {std:.2f})")
 
     elif args.mode == "random_write":
-        res = random_write_test(args.size_bytes, args.iters, args.batch)
-        ops_s, avg_elem, min_elem, max_elem = res[0], res[2], res[3], res[4]
-        print(f"Rand Write {args.size_bytes} Bytes | IOPS: {ops_s:.0f} | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f})")
+        res = random_write_test(args.size_bytes, dynamic_iters, args.batch)
+        ops_s, avg_elem, min_elem, max_elem, std = res[0], res[2], res[3], res[4], res[8]
+        print(f"Rand Write {args.size_bytes} Bytes | IOPS: {ops_s:.0f} | Lat: {avg_elem:.2f} ns (Min: {min_elem:.2f}, Max: {max_elem:.2f}, Std: {std:.2f})")
     

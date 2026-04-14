@@ -1,108 +1,89 @@
 import matplotlib.pyplot as plt
-import mem_stress3
 import numpy as np
 import os
+import pandas as pd  
 
 def run_comparison_random():
-    print("=== Analyse Aleatoire : STD vs Min/Max ===")
+    print("=== Analysis of random mode : STD vs Min/Max (Data Visualization) ===")
     
-    # 32 Ko = L1, 256 Ko = L2, 4 Mo+ = L3/RAM
-    target_sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072,  262144, 524288,  1048576] #,2097152, 3145728
-    
-    #output_dir = "results/analyse_rand"
     POD_ID = os.environ.get("POD_ID", "local")
+    
+    csv_path = f"results/{POD_ID}/perf/seq/memory_benchmark_results_full_seq.csv"
     output_dir = f"results/{POD_ID}/analyse_rand"
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    data = {
-        'Rand Read':   {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#ff7f0e'},
-        'Rand Write':  {'x': [], 'y': [], 'std': [], 'y_err_low': [], 'y_err_high': [], 'c': '#2ca02c'},
-    }
-    
-    ITERS_RAND = 2000 
-    BATCH_SIZE = 2000
+    if not os.path.exists(csv_path):
+        print(f"[ERROR] Inexistant file : {csv_path}")
+        print("First run script.py to generate metrics.")
+        return
 
-    for size_kb in target_sizes_kb:
-        if size_kb < 1024:
-            print(f"--- Benchmarking : {size_kb} Ko ---")
-        else:
-            print(f"--- Benchmarking : {size_kb/1024:.1f} Mo ---")
-        
-        real_size_bytes = int(size_kb * 1024)
-        
-        # 1. SEQUENTIAL READ
-        res_rr = mem_stress3.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
-        avg, mini, maxi, std = res_rr[2] , res_rr[3], res_rr[4], res_rr[8]
-        
-        data['Rand Read']['x'].append(size_kb)
-        data['Rand Read']['y'].append(avg)
-        data['Rand Read']['std'].append(std)
-        data['Rand Read']['y_err_low'].append(avg - mini)
-        data['Rand Read']['y_err_high'].append(maxi - avg)
+    print(f"[INFO] Reading data from {csv_path}...")
+    df = pd.read_csv(csv_path)
 
-        # 3. RANDOM WRITE
-        #_,_, avg, mini, maxi, _, _, _, std = mem_stress3.random_write_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
-        res_rw = mem_stress3.random_access_test(real_size_bytes, ITERS_RAND, batch=BATCH_SIZE)
-        avg, mini, maxi, std = res_rw[2] , res_rw[3], res_rw[4], res_rw[8]
-        
-        data['Rand Write']['x'].append(size_kb)
-        data['Rand Write']['y'].append(avg)
-        data['Rand Write']['std'].append(std)
-        data['Rand Write']['y_err_low'].append(avg - mini)
-        data['Rand Write']['y_err_high'].append(maxi - avg)
+    # Filtrage strict pour ne garder que les tests Random
+    df_rr = df[df['pattern'] == 'random_read'].copy()
+    df_rw = df[df['pattern'] == 'random_write'].copy()
 
+    # Liste des tailles pour l'affichage (récupérée directement des données)
+    target_sizes_kb = sorted(df_rr['size_kb'].unique())
 
     # --- Tracé ---
-    print("\n[INFO] Génération du graphique...")
+    print("\n[INFO] Generating the plot...")
     plt.figure(figsize=(12, 8))
     
-    # Légers décalages pour ne pas superposer les points bleus et rouges
-    offsets = {
-        'Rand Read':   0.95, 
-        'Rand Write':  1.05,
-    }
+    # Légers décalages pour ne pas superposer les points (Read à gauche, Write à droite)
+    offsets = {'Rand Read': 0.95, 'Rand Write': 1.05}
 
-    for label, d in data.items():
-        # Conversion en numpy array pour faciliter les opérations
-        x_vals = np.array(d['x'])
-        y_vals = np.array(d['y'])
+    # Configuration simplifiée pour itérer
+    plot_configs = [
+        ('Rand Read', df_rr, '#ff7f0e'), 
+        ('Rand Write', df_rw, '#2ca02c')  
+    ]
+
+    for label, df_sub, color in plot_configs:
+        if df_sub.empty:
+            continue
+            
+        x_vals = df_sub['size_kb'].values
+        y_vals = df_sub['lat_ns'].values
         
         # Application du décalage
         shifted_x = x_vals * offsets[label]
         
-        # Récupération des erreurs
-        asymmetric_error = [d['y_err_low'], d['y_err_high']] # Pour Min/Max
-        std_error = d['std']                                 # Pour STD
+        # Récupération des erreurs directement depuis les colonnes du DataFrame
+        err_low = y_vals - df_sub['min_ns'].values
+        err_high = df_sub['max_ns'].values - y_vals
+        asymmetric_error = [err_low, err_high] # Pour Min/Max
+        
+        std_error = df_sub['std_ns'].values    # Pour STD
 
         # --- COUCHE 1 : La Moyenne et la STD (Le Signal) ---
-        # On trace ceci en PREMIER (ou avec un zorder élevé) et en ÉPAIS
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=std_error, 
-            label=label,          # Le label pour la légende
-            fmt='o',              # Point rond pour la moyenne
-            color=d['c'],         
-            elinewidth=3,         # <--- LIGNE ÉPAISSE pour la STD
-            capsize=0,            # Pas de chapeau pour la STD (plus propre)
+            label=label,          
+            fmt='o',              
+            color=color,         
+            elinewidth=3,         # LIGNE ÉPAISSE pour la STD
+            capsize=0,            
             markersize=6,
             alpha=0.9,
-            zorder=5              # S'affiche au-dessus du reste
+            zorder=5              
         )
 
         # --- COUCHE 2 : Le Min/Max (Le Bruit/Outliers) ---
-        # On trace ceci en DEUXIÈME, en FIN et TRANSPARENT
         plt.errorbar(
             shifted_x, y_vals, 
             yerr=asymmetric_error, 
-            fmt='none',           # Pas de point (déjà dessiné au-dessus)
-            ecolor=d['c'],        # Même couleur
-            elinewidth=1,       # <--- LIGNE FINE pour Min/Max
-            capsize=4,            # Chapeaux pour bien voir les limites
+            fmt='none',           
+            ecolor=color,        
+            elinewidth=1,         # LIGNE FINE pour Min/Max
+            capsize=4,            
             markeredgewidth=0.8,
-            alpha=0.4,            # Transparence pour ne pas polluer
-            zorder=4              # S'affiche en dessous
+            alpha=0.4,            
+            zorder=4              
         )
 
     plt.xscale('log')
@@ -111,23 +92,25 @@ def run_comparison_random():
     # Gestion des ticks X
     plt.xticks(
         ticks=target_sizes_kb, 
-        labels=[str(s) for s in target_sizes_kb], 
+        labels=[str(int(s)) for s in target_sizes_kb], 
         rotation=45
     )
 
     # Titres et Grille
-    plt.xlabel('Taille du Bloc Mémoire (Ko)', fontsize=12, fontweight='bold')
+    plt.xlabel('Size of memory array (Ko)', fontsize=12, fontweight='bold')
     plt.ylabel('Latence (ns) [Point=Moy | Épais=STD | Fin=Min/Max]', fontsize=11, fontweight='bold')
-    plt.title(f'Performance Aleatoire : Stabilité vs Perturbations\n({ITERS_RAND} itérations)', fontsize=14)
+    
+    # Le titre indique a source du CSV pour la traçabilité
+    plt.title(f'Performance of Random test : Stability vs Perturbations\n(Source: {csv_path})', fontsize=14)
 
     plt.grid(True, which="major", ls="-", alpha=0.6)
-    plt.grid(True, which="minor", ls=":", alpha=0.3) # Grille mineure utile en log
+    plt.grid(True, which="minor", ls=":", alpha=0.3) 
     
     plt.legend(fontsize=11, loc='upper left')
 
-    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_20000_Version_finale.png")
+    save_path = os.path.join(output_dir, "analyse_rand_std_correcte_Version_finale.png")
     plt.savefig(save_path)
-    print(f"[OK] Graphique sauvegardé : {save_path}")
+    print(f"[OK] Graph saved : {save_path}")
     plt.show()
 
 if __name__ == "__main__":
