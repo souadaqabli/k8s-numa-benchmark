@@ -4,7 +4,13 @@ import pandas as pd
 import os
 import time
 import re
+import argparse
 import matplotlib.pyplot as plt
+
+# ------------------ ARGUMENTS ------------------
+parser = argparse.ArgumentParser()
+parser.add_argument("--output-dir", type=str, default=None)
+args = parser.parse_args()
 
 # ------------------ CONFIG ------------------
 patterns = ["sequential_read", "sequential_write", "random_read", "random_write"] 
@@ -14,15 +20,19 @@ ITERS_SEQ = 2000
 ITERS_RAND = 2000
 batch = 20000
 
-
 results = []
-# output_dir = "results/perf/seq"
+
+# ------------------ OUTPUT DIR ------------------
 POD_ID = os.environ.get("POD_ID", "local")
-output_dir = f"results/{POD_ID}/perf/seq"
 
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+if args.output_dir:
+    output_dir = args.output_dir
+else:
+    output_dir = f"results/{POD_ID}/perf/seq"
 
+os.makedirs(output_dir, exist_ok=True)
+
+print(f"[INFO] Results will be saved in: {output_dir}")
 
 #-------------Topology--------------
 def capture_system_topology():
@@ -148,7 +158,7 @@ def run_perf(mode, size_val, unit="kb", stride_val=None):
                 metrics["LLC_misses"] = val
             elif "dTLB-load-misses" in event: 
                 metrics["TLB_misses"] = val
-        except: 
+        except (ValueError, IndexError):
             continue
 
     # Calcul IPC
@@ -192,10 +202,11 @@ for size_kb in sizes_kb:
 
 
 df = pd.DataFrame(results)
-df.to_csv(os.path.join(output_dir, "memory_benchmark_results_full_seq.csv"), index=False)
+csv_path = os.path.join(output_dir, "memory_benchmark_results.csv")
+df.to_csv(csv_path, index=False)
 print("\n=== FINISHED ===")
 #print(df)
 print("\n=== PERFORMANCE OVERVIEW ===")
 print(df[["pattern", "size_kb", "ops_or_bw", "lat_ns", "std_ns", "IPC", "LLC_misses"]].to_string(index=False))
 
-print("\n=== FINISHED: Results and Graphics in 'results/perf/seq' directory ===")
+print(f"\n=== FINISHED: Results saved in {csv_path} ===")
