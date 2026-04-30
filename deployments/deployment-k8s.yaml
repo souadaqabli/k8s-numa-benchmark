@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-vanilla
+spec:
+  parallelism: 4
+  completions: 4
+  template:
+    metadata:
+      labels:
+        app: benchmark-vanilla
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa2
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export OUTPUT_DIR=/app/results/vanilla_$(hostname)
+            mkdir -p $OUTPUT_DIR
+            echo "--- VANILLA MODE: NO NUMA PINNING ---"
+            python3 scripts/script.py --output-dir "$OUTPUT_DIR"
+            echo "--- Generating plots ---"
+            python3 scripts/run_micro_analysis_seq.py "$OUTPUT_DIR"
+            python3 scripts/run_micro_analysis_rand.py "$OUTPUT_DIR"
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate

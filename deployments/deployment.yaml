@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-job
+spec:
+  ttlSecondsAfterFinished: 3600
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app: benchmark
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v9
+        command: ["bash", "run_all.sh"]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results   # chemin dans le pod où le script écrit
+      restartPolicy: Never
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - benchmark
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results  # sdn4
+          type: DirectoryOrCreate

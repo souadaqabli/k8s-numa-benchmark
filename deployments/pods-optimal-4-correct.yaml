@@ -1,0 +1,86 @@
+# pods-optimal-4.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-optimal-numa0
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-optimal-numa0
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa3
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/optimal_numa0_${POD_ID}
+            export CPU_NODE=0
+            export MEM_NODE=0
+            bash run_all.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-optimal-numa1
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-optimal-numa1
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa3
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/optimal_numa1_${POD_ID}
+            export CPU_NODE=1
+            export MEM_NODE=1
+            bash run_all.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate

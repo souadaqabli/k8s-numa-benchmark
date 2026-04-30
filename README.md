@@ -8,10 +8,13 @@ Metrological Refinements: Integration of Core Pinning, Subtractive Calibration, 
 
 Hardware Telemetry: Deep correlation with hardware counters via perf (LLC-load-misses, IPC, and Backend Stalls).
 ## Project Structure
-- mem_stress3.py: The core benchmarking engine implementing the optimized sequential kernels.
-- run_all.sh: Automation script to execute the full measurement suite
-- script.py: Orchestrator for synchronizing Python benchmarks with the Linux perf subsystem.
-- /results: Directory containing raw measurement data and performance profiles.
+- `scripts/`: Python benchmark scripts and analysis entrypoints.
+- `run_all.sh`: Automation script to execute the full measurement suite.
+- `deployments/`: Kubernetes and NUMA deployment manifests for cluster and container experiments.
+- `results/`: Directory containing raw measurement data and performance profiles.
+- `data/`: Source datasets, archives, and perf logs.
+- `figures/`: Generated plots and visualization assets.
+- `archive/`: Backup and legacy files moved out of the root workspace.
 ## Prerequisites & Installation
 - OS: Linux (tested on Ubuntu 24.04 LTS).
 - Dependencies: Python 3.12+, NumPy 1.26.4.

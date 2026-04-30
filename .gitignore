@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Dossiers de résultats générés (On ignore tout le contenu)
+archive/
+data/
+figures/
+plots/
+results/
+perf_results/
+
+# Fichiers de données qui traîneraient à la racine
+*.csv
+*.svg
+*.tar
+*.out

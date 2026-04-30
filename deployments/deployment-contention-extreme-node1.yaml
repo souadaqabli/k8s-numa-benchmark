@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod1
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa3
+    command: ["/bin/bash", "-c"]
+    args:
+      - export OUTPUT_DIR=/app/results/extreme_pod1_cpu0_mem1; export TARGET_NODE=0; numactl --cpunodebind=0 --membind=1 bash run_all.sh
+    securityContext: { privileged: true }
+    resources: { requests: { cpu: "1", memory: "3Gi" }, limits: { cpu: "1", memory: "3Gi" } }
+    volumeMounts: [{ name: results-volume, mountPath: /app/results }]
+  restartPolicy: Never
+  volumes: [{ name: results-volume, hostPath: { path: /home/sdnuser/k8s-numa-benchmark/results, type: DirectoryOrCreate } }]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod2
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa3
+    command: ["/bin/bash", "-c"]
+    args:
+      - export OUTPUT_DIR=/app/results/extreme_pod2_cpu0_mem1; export TARGET_NODE=0; numactl --cpunodebind=0 --membind=1 bash run_all.sh
+    securityContext: { privileged: true }
+    resources: { requests: { cpu: "1", memory: "3Gi" }, limits: { cpu: "1", memory: "3Gi" } }
+    volumeMounts: [{ name: results-volume, mountPath: /app/results }]
+  restartPolicy: Never
+  volumes: [{ name: results-volume, hostPath: { path: /home/sdnuser/k8s-numa-benchmark/results, type: DirectoryOrCreate } }]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod3
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa3
+    command: ["/bin/bash", "-c"]
+    args:
+      - export OUTPUT_DIR=/app/results/extreme_pod3_cpu0_mem1; export TARGET_NODE=0; numactl --cpunodebind=0 --membind=1 bash run_all.sh
+    securityContext: { privileged: true }
+    resources: { requests: { cpu: "1", memory: "3Gi" }, limits: { cpu: "1", memory: "3Gi" } }
+    volumeMounts: [{ name: results-volume, mountPath: /app/results }]
+  restartPolicy: Never
+  volumes: [{ name: results-volume, hostPath: { path: /home/sdnuser/k8s-numa-benchmark/results, type: DirectoryOrCreate } }]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod4
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa3
+    command: ["/bin/bash", "-c"]
+    args:
+      - export OUTPUT_DIR=/app/results/extreme_pod4_cpu0_mem1; export TARGET_NODE=0; numactl --cpunodebind=0 --membind=1 bash run_all.sh
+    securityContext: { privileged: true }
+    resources: { requests: { cpu: "1", memory: "3Gi" }, limits: { cpu: "1", memory: "3Gi" } }
+    volumeMounts: [{ name: results-volume, mountPath: /app/results }]
+  restartPolicy: Never
+  volumes: [{ name: results-volume, hostPath: { path: /home/sdnuser/k8s-numa-benchmark/results, type: DirectoryOrCreate } }]

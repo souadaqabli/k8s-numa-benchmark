@@ -1,0 +1,6 @@
+```
+*.tar
+results/
+__pycache__/
+*.pyc
+perf_results/

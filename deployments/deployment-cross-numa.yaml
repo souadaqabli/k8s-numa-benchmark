@@ -1,0 +1,92 @@
+# benchmark-cross-numa.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-cross-numa0
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-cross-numa0
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa2
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/cross_numa0_${POD_ID}
+            mkdir -p $OUTPUT_DIR
+            echo "cpuset autorisé : $(cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null || echo 'non restreint')"
+            echo "--- CROSS-NUMA: CPU=NUMA0, MEM=NUMA1 ---"
+            numactl --cpunodebind=0 --membind=1 python3 scripts/script.py --output-dir "$OUTPUT_DIR"
+            python3 scripts/run_micro_analysis_seq.py "$OUTPUT_DIR"
+            python3 scripts/run_micro_analysis_rand.py "$OUTPUT_DIR"
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-cross-numa1
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-cross-numa1
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa2
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/cross_numa1_${POD_ID}
+            mkdir -p $OUTPUT_DIR
+            echo "cpuset autorisé : $(cat /sys/fs/cgroup/cpuset/cpuset.cpus 2>/dev/null || cat /sys/fs/cgroup/cpuset.cpus 2>/dev/null || echo 'non restreint')"
+            echo "--- CROSS-NUMA: CPU=NUMA1, MEM=NUMA0 ---"
+            numactl --cpunodebind=1 --membind=0 python3 scripts/script.py --output-dir "$OUTPUT_DIR"
+            python3 scripts/run_micro_analysis_seq.py "$OUTPUT_DIR"
+            python3 scripts/run_micro_analysis_rand.py "$OUTPUT_DIR"
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
