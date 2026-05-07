@@ -1,0 +1,144 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod1-node1
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod1_cpu0_mem1_seq; export CPU_NODE=0; export MEM_NODE=1; export PATTERN='sequential'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "3Gi" }
+    volumeMounts: 
+      - name: results-volume
+        mountPath: /app/results
+      - name: script-python-volume
+        mountPath: /app/scripts/script.py
+        subPath: script.py
+      - name: script-python-volume
+        mountPath: /app/run_all.sh
+        subPath: run_all.sh
+  restartPolicy: Never
+  volumes: 
+    - name: results-volume
+      hostPath: 
+        path: /home/sdnuser/k8s-numa-benchmark/results
+        type: DirectoryOrCreate
+    - name: script-python-volume
+      configMap:
+        name: script-benchmark
+    
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod2-node1
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod2_cpu0_mem1_seq; export CPU_NODE=0; export MEM_NODE=1; export PATTERN='sequential'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "3Gi" }
+    volumeMounts: 
+      - name: results-volume
+        mountPath: /app/results
+      - name: script-python-volume
+        mountPath: /app/scripts/script.py
+        subPath: script.py
+      - name: script-python-volume
+        mountPath: /app/run_all.sh
+        subPath: run_all.sh
+  restartPolicy: Never
+  volumes: 
+    - name: results-volume
+      hostPath: 
+        path: /home/sdnuser/k8s-numa-benchmark/results
+        type: DirectoryOrCreate
+    - name: script-python-volume
+      configMap:
+        name: script-benchmark
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod3-node1
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod3_cpu0_mem1_seq; export CPU_NODE=0; export MEM_NODE=1; export PATTERN='sequential'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "3Gi" }
+    volumeMounts: 
+      - name: results-volume
+        mountPath: /app/results
+      - name: script-python-volume
+        mountPath: /app/scripts/script.py
+        subPath: script.py
+      - name: script-python-volume
+        mountPath: /app/run_all.sh
+        subPath: run_all.sh
+  restartPolicy: Never
+  volumes: 
+    - name: results-volume
+      hostPath: 
+        path: /home/sdnuser/k8s-numa-benchmark/results
+        type: DirectoryOrCreate
+    - name: script-python-volume
+      configMap:
+        name: script-benchmark
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod4-node1
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod4_cpu0_mem1_seq; export CPU_NODE=0; export MEM_NODE=1; export PATTERN='sequential'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "3Gi" }
+    volumeMounts: 
+      - name: results-volume
+        mountPath: /app/results
+      - name: script-python-volume
+        mountPath: /app/scripts/script.py
+        subPath: script.py
+      - name: script-python-volume
+        mountPath: /app/run_all.sh
+        subPath: run_all.sh
+  restartPolicy: Never
+  volumes: 
+    - name: results-volume
+      hostPath: 
+        path: /home/sdnuser/k8s-numa-benchmark/results
+        type: DirectoryOrCreate
+    - name: script-python-volume
+      configMap:
+        name: script-benchmark

@@ -1,0 +1,166 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod1-seq-time
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod1_cpu0_mem0_seq_time; export CPU_NODE=0; export MEM_NODE=0; export PATTERN='sequential'; export EXPERIMENT_MODE='time'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "10Gi" }
+    
+    volumeMounts:
+    - name: results-volume
+      mountPath: /app/results
+    - name: script-python-volume
+      mountPath: /app/scripts/script_controlled.py
+      subPath: script_controlled.py
+    - name: script-python-volume
+      mountPath: /app/scripts/mem_stress_controlled.py
+      subPath: mem_stress_controlled.py
+    - name: script-python-volume
+      mountPath: /app/run_all.sh
+      subPath: run_all.sh
+
+  restartPolicy: Never
+  volumes:
+  - name: results-volume
+    hostPath:
+      path: /home/sdnuser/k8s-numa-benchmark/results
+      type: DirectoryOrCreate
+  - name: script-python-volume
+    configMap:
+      name: script-benchmark-controlled
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod2-seq-time
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod2_cpu0_mem0_seq_time; export CPU_NODE=0; export MEM_NODE=0; export PATTERN='sequential'; export EXPERIMENT_MODE='time'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "10Gi" }
+    
+    volumeMounts:
+    - name: results-volume
+      mountPath: /app/results
+    - name: script-python-volume
+      mountPath: /app/scripts/script_controlled.py
+      subPath: script_controlled.py
+    - name: script-python-volume
+      mountPath: /app/scripts/mem_stress_controlled.py
+      subPath: mem_stress_controlled.py
+    - name: script-python-volume
+      mountPath: /app/run_all.sh
+      subPath: run_all.sh
+
+  restartPolicy: Never
+  volumes:
+  - name: results-volume
+    hostPath:
+      path: /home/sdnuser/k8s-numa-benchmark/results
+      type: DirectoryOrCreate
+  - name: script-python-volume
+    configMap:
+      name: script-benchmark-controlled
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod3-seq-time
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod3_cpu0_mem0_seq_time; export CPU_NODE=0; export MEM_NODE=0; export PATTERN='sequential'; export EXPERIMENT_MODE='time'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "10Gi" }
+      
+    volumeMounts:
+    - name: results-volume
+      mountPath: /app/results
+    - name: script-python-volume
+      mountPath: /app/scripts/script_controlled.py
+      subPath: script_controlled.py
+    - name: script-python-volume
+      mountPath: /app/scripts/mem_stress_controlled.py
+      subPath: mem_stress_controlled.py
+    - name: script-python-volume
+      mountPath: /app/run_all.sh
+      subPath: run_all.sh
+
+  restartPolicy: Never
+  volumes:
+  - name: results-volume
+    hostPath:
+      path: /home/sdnuser/k8s-numa-benchmark/results
+      type: DirectoryOrCreate
+  - name: script-python-volume
+    configMap:
+      name: script-benchmark-controlled
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: extreme-pod4-seq-time
+spec:
+  nodeName: sdn2
+  containers:
+  - name: benchmark
+    image: memory-benchmark:v_numa4
+    command: ["/bin/bash", "-c"]
+    args:
+      - "export OUTPUT_DIR=/app/results/extreme_pod4_cpu0_mem0_seq_time; export CPU_NODE=0; export MEM_NODE=0; export PATTERN='sequential'; export EXPERIMENT_MODE='time'; bash run_all.sh"
+    securityContext: 
+      privileged: true
+    resources: 
+      requests: { cpu: "1", memory: "3Gi" }
+      limits: { cpu: "1", memory: "10Gi" }
+      
+    volumeMounts:
+    - name: results-volume
+      mountPath: /app/results
+    - name: script-python-volume
+      mountPath: /app/scripts/script_controlled.py
+      subPath: script_controlled.py
+    - name: script-python-volume
+      mountPath: /app/scripts/mem_stress_controlled.py
+      subPath: mem_stress_controlled.py
+    - name: script-python-volume
+      mountPath: /app/run_all.sh
+      subPath: run_all.sh
+
+  restartPolicy: Never
+  volumes:
+  - name: results-volume
+    hostPath:
+      path: /home/sdnuser/k8s-numa-benchmark/results
+      type: DirectoryOrCreate
+  - name: script-python-volume
+    configMap:
+      name: script-benchmark-controlled

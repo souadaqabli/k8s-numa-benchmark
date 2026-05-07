@@ -1,0 +1,114 @@
+# pods-optimal-4.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-optimal-numa0-seq-time
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-optimal-numa0-seq-time
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/optimal_numa0_cpu0_mem0_seq_time_${POD_ID}
+            export CPU_NODE=0
+            export MEM_NODE=0
+            export PATTERN="sequential"
+            export EXPERIMENT_MODE="time"
+            bash run_all.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "10Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled.py
+          subPath: script_controlled.py
+        - name: script-python-volume
+          mountPath: /app/scripts/mem_stress_controlled.py
+          subPath: mem_stress_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all.sh
+          subPath: run_all.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: benchmark-optimal-numa1-seq-time
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: benchmark-optimal-numa1-seq-time
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/optimal_numa1_cpu1_mem1_seq_time_${POD_ID}
+            export CPU_NODE=1
+            export MEM_NODE=1
+            export PATTERN="sequential"
+            export EXPERIMENT_MODE="time"
+            bash run_all.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "1"
+            memory: "10Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled.py
+          subPath: script_controlled.py
+        - name: script-python-volume
+          mountPath: /app/scripts/mem_stress_controlled.py
+          subPath: mem_stress_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all.sh
+          subPath: run_all.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled
