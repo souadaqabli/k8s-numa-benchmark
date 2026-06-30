@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-native-light-rand
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: bench-native-light-rand
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/diagnostics/native-light-rand/bench-native-light-rand-${POD_ID}
+            export EXPERIMENT_MODE="work"
+            export PATTERN="random"
+            export TARGET_SIZE_KB=2097152  
+            
+            mkdir -p "$OUTPUT_DIR"
+            echo "--- HETERO LIGHT RAND : buffer 256Mo, work-bound 10Go ---"
+            cd /app
+            python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN" 
+            
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "3Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled.py
+          subPath: script_controlled.py
+        - name: script-python-volume
+          mountPath: /app/scripts/mem_stress_controlled.py
+          subPath: mem_stress_controlled.py
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled

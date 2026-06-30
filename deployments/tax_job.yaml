@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tax-benchmark
+spec:
+  template:
+    spec:
+      containers:
+      - name: benchmark
+        image: my-python-benchmark
+        imagePullPolicy: Never
+        workingDir: /app
+        command: ["numactl", "--cpunodebind=0", "--membind=0", "python", "scripts/mem_stress_controlled.py", "--mode", "sequential_read", "--target-mb", "10240"]
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+      volumes:
+      - name: app-code
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: sdn4

@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-baseline
+  labels:
+    app: redis
+    topology: baseline
+spec:
+  nodeName: sdn2  # Force le pod sur le worker node
+  containers:
+  - name: redis
+    image: redis:7-alpine
+    command: ["/bin/sh", "-c"]
+    args:
+      apk add numactl
+      - numactl --physcpubind=0,2 --membind=0 redis-server --protected-mode no
+    ports:
+    - containerPort: 6379
+    resources:
+      limits:
+        memory: "4Gi"
+      requests:
+        memory: "4Gi"
+    securityContext:
+      privileged: true  # Nécessaire pour numactl dans le conteneur
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-extreme
+  labels:
+    app: redis
+    topology: extreme
+spec:
+  nodeName: sdn2
+  containers:
+  - name: redis
+    image: redis:7-alpine
+    command: ["/bin/sh", "-c"]
+    args:
+      apk add numactl
+      - numactl --physcpubind=0,2,4,6 --membind=0 redis-server --protected-mode no
+    ports:
+    - containerPort: 6379
+    resources:
+      limits:
+        memory: "4Gi"
+      requests:
+        memory: "4Gi"
+    securityContext:
+      privileged: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-cross
+  labels:
+    app: redis
+    topology: cross-numa
+spec:
+  nodeName: sdn2
+  containers:
+  - name: redis
+    image: redis:7-alpine
+    command: ["/bin/sh", "-c"]
+    args:
+      apk add numactl
+      - numactl --physcpubind=0,2 --membind=1 redis-server --protected-mode no
+    ports:
+    - containerPort: 6379
+    resources:
+      limits:
+        memory: "4Gi"
+      requests:
+        memory: "4Gi"
+    securityContext:
+      privileged: true
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: redis-extreme-cross
+  labels:
+    app: redis
+    topology: extreme-cross
+spec:
+  nodeName: sdn2
+  containers:
+  - name: redis
+    image: redis:7-alpine
+    command: ["/bin/sh", "-c"]
+    args:
+      apk add numactl
+      - numactl --physcpubind=0,2,4,6 --membind=1 redis-server --protected-mode no
+    ports:
+    - containerPort: 6379
+    resources:
+      limits:
+        memory: "4Gi"
+      requests:
+        memory: "4Gi"
+    securityContext:
+      privileged: true

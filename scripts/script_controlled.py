@@ -22,7 +22,16 @@ else:
     patterns = ["sequential_read", "sequential_write", "random_read", "random_write"]
 
 #sizes_kb = [1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 65536, 131072,  262144, 524288,  1048576]
-sizes_kb = [16384, 65536, 131072,  262144, 524288,  1048576]
+#sizes_kb = [16384, 65536, 131072,  262144, 524288,  1048576]
+# --- INJECTION DYNAMIQUE DE LA TAILLE ---
+target_size = os.environ.get("TARGET_SIZE_KB")
+
+if target_size:
+    sizes_kb = [int(target_size)]
+    print(f"[INFO] Mode Isolé activé : exécution unique pour {target_size} KB")
+else:
+    sizes_kb = [16384, 65536, 131072, 262144, 524288, 1048576]
+# ----------------------------------------
 ITERS_SEQ = 200   
 ITERS_RAND = 200
 batch = 5000

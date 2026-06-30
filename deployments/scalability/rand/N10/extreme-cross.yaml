@@ -1,0 +1,59 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-excr-n10-rand
+spec:
+  parallelism: 10
+  completions: 10
+  template:
+    metadata:
+      labels:
+        app: bench-excr-n10-rand
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            apt-get update && apt-get install -y time
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/diagnostics/extreme-cross-rand-N10/${POD_ID}
+            export BINDING_MODE="core"
+            export PHYS_CPU_LIST="0,2,4,6,8,10,12,14,16,18"
+            export MEM_NODE="1"
+            export PATTERN="random"
+            export EXPERIMENT_MODE="work"
+            /usr/bin/time -v bash run_all.sh > ${OUTPUT_DIR}/script_stdout.log 2> ${OUTPUT_DIR}/time_metrics.txt
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled.py
+          subPath: script_controlled.py
+        - name: script-python-volume
+          mountPath: /app/scripts/mem_stress_controlled.py
+          subPath: mem_stress_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all.sh
+          subPath: run_all.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled

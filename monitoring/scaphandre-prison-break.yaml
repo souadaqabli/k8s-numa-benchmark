@@ -1,0 +1,22 @@
+spec:
+  template:
+    spec:
+      hostPID: true
+      containers:
+      - name: scaphandre
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: powercap
+          mountPath: /sys/class/powercap
+          readOnly: true
+        - name: virtual-powercap
+          mountPath: /sys/devices/virtual/powercap
+          readOnly: true
+      volumes:
+      - name: powercap
+        hostPath:
+          path: /sys/class/powercap
+      - name: virtual-powercap
+        hostPath:
+          path: /sys/devices/virtual/powercap

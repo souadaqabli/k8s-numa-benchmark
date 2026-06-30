@@ -1,9 +1,11 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
 venv/
 .env
 
-# Dossiers de résultats générés (On ignore tout le contenu)
+# Dossiers de résultats et données brutes (générés localement, non versionnés)
 archive/
 data/
 figures/
@@ -11,8 +13,27 @@ plots/
 results/
 perf_results/
 
-# Fichiers de données qui traîneraient à la racine
+# Dossiers de backup locaux
+analysis_k8s_backup/
+results_k8s_backup/
+
+# Code source tiers — Scaphandre cloné localement (pas notre code)
+monitoring/scaphandre/
+
+# Outputs générés par les scripts d'analyse (PNG, CSV dans analysis/)
+analysis/**/*.png
+analysis/**/*.csv
+analysis/**/__pycache__/
+
+# Fichiers de données flottant à la racine
+*.png
 *.csv
 *.svg
 *.tar
 *.out
+
+# Documents de travail internes (non destinés au dépôt public)
+PLAN_TRAVAIL.md
+
+# Dockerfile de test temporaire
+Dockerfile.test

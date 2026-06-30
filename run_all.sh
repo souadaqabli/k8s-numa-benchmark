@@ -1,17 +1,24 @@
 #!/bin/bash
 
 POD_ID=${POD_ID:-"local"}
-# Découplage vital pour permettre le Cross-NUMA
-CPU_NODE=${CPU_NODE:-0} 
-MEM_NODE=${MEM_NODE:-0} 
 OUTPUT_DIR=${OUTPUT_DIR:-"/app/results/default"}   
 PATTERN=${PATTERN:-"all"}    
+
+# --- Variables NUMA ---
+MEM_NODE=${MEM_NODE:-0} 
+
+# L'interrupteur magique : "node" (ancien) ou "core" (nouveau)
+BINDING_MODE=${BINDING_MODE:-"node"} 
+
+# Variables selon le mode
+CPU_NODE=${CPU_NODE:-0}              # Utilisé si BINDING_MODE="node"
+PHYS_CPU_LIST=${PHYS_CPU_LIST:-"0"}  # Utilisé si BINDING_MODE="core"
 
 mkdir -p "$OUTPUT_DIR"
 
 echo "=============================="
 echo "POD:        $POD_ID"
-echo "CPU NODE:   $CPU_NODE"
+echo "MODE:       $BINDING_MODE"
 echo "MEM NODE:   $MEM_NODE"
 echo "OUTPUT_DIR: $OUTPUT_DIR"
 echo "=============================="
@@ -19,17 +26,26 @@ echo "=============================="
 echo "--- PHASE 1 : Collecting Data ---"
 
 if command -v numactl &> /dev/null; then
-    echo "[INFO] Running with NUMA binding: CPU=$CPU_NODE, MEM=$MEM_NODE"
-    numactl --cpunodebind=$CPU_NODE --membind=$MEM_NODE \
-        python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    if [ "$BINDING_MODE" == "core" ]; then
+        echo "[INFO] NOUVEAU MODE (Chirurgical) : CPUs=$PHYS_CPU_LIST, MEM=$MEM_NODE"
+        numactl --physcpubind=$PHYS_CPU_LIST --membind=$MEM_NODE \
+            python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    else
+        echo "[INFO] ANCIEN MODE (Nœud Global) : CPU_NODE=$CPU_NODE, MEM=$MEM_NODE"
+        numactl --cpunodebind=$CPU_NODE --membind=$MEM_NODE \
+            python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    fi
 else
-    echo "[WARNING] numactl not found, fallback to taskset (MEMORY BINDING WILL FAIL)"
-    # taskset ne gère que le CPU, pas la RAM !
-    taskset -c $CPU_NODE \
-        python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    echo "[WARNING] numactl not found, fallback to taskset"
+    if [ "$BINDING_MODE" == "core" ]; then
+        taskset -c $PHYS_CPU_LIST python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    else
+        taskset -c $CPU_NODE python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+    fi
 fi
 
-echo "--- PHASE 2 : Generating plots ---"
+echo "FINISHED !"
+#echo "--- PHASE 2 : Generating plots ---"
 
 #if [ "$PATTERN" == "sequential" ]; then
     #echo "[INFO] Generating Sequential plots..."
