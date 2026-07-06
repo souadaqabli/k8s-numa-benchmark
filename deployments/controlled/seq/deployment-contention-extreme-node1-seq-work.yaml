@@ -53,8 +53,8 @@ spec:
     securityContext: 
       privileged: true
     resources: 
-      requests: { cpu: "1", memory: "3Gi" }
-      limits: { cpu: "1", memory: "10Gi" }
+      requests: { cpu: "2", memory: "7Gi" }
+      limits: { cpu: "2", memory: "7Gi" }
     volumeMounts: 
       - name: results-volume
         mountPath: /app/results
@@ -92,8 +92,8 @@ spec:
     securityContext: 
       privileged: true
     resources: 
-      requests: { cpu: "1", memory: "3Gi" }
-      limits: { cpu: "1", memory: "10Gi" }
+      requests: { cpu: "2", memory: "7Gi" }
+      limits: { cpu: "2", memory: "7Gi" }
     volumeMounts: 
       - name: results-volume
         mountPath: /app/results
@@ -131,8 +131,8 @@ spec:
     securityContext: 
       privileged: true
     resources: 
-      requests: { cpu: "1", memory: "3Gi" }
-      limits: { cpu: "1", memory: "10Gi" }
+      requests: { cpu: "2", memory: "7Gi" }
+      limits: { cpu: "2", memory: "7Gi" }
     volumeMounts: 
       - name: results-volume
         mountPath: /app/results

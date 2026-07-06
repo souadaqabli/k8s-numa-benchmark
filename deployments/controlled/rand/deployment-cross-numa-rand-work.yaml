@@ -28,11 +28,11 @@ spec:
           privileged: true
         resources:
           requests:
-            cpu: "1"
-            memory: "10Gi"
+            cpu: "2"
+            memory: "7Gi"
           limits:
-            cpu: "1"
-            memory: "10Gi"
+            cpu: "2"
+            memory: "7Gi"
         volumeMounts:
         - name: results-volume
           mountPath: /app/results
@@ -85,11 +85,11 @@ spec:
           privileged: true
         resources:
           requests:
-            cpu: "1"
-            memory: "3Gi"
+            cpu: "2"
+            memory: "7Gi"
           limits:
-            cpu: "1"
-            memory: "10Gi"
+            cpu: "2"
+            memory: "7Gi"
         volumeMounts:
         - name: results-volume
           mountPath: /app/results
