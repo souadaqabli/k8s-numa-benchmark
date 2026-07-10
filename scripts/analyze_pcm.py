@@ -63,12 +63,12 @@ print("PCM-MEMORY ANALYSIS: Extreme Rand N10 vs N12")
 print("=" * 60)
 
 r10, df10, s0_10, s1_10 = analyze_pcm_memory(
-    "/home/sdnuser/pcm_mem_extreme_n10_rand.csv", 
+    "./pcm_mem_extreme_n10_rand.csv", 
     "Extreme-Rand-N10"
 )
 
 r12, df12, s0_12, s1_12 = analyze_pcm_memory(
-    "/home/sdnuser/pcm_mem_extreme_n12_rand.csv", 
+    "./pcm_mem_extreme_n12_rand.csv", 
     "Extreme-Rand-N12"
 )
 

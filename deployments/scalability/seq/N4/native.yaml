@@ -18,7 +18,7 @@ spec:
         args:
           - |
             export POD_ID=$(hostname)
-            export OUTPUT_DIR=/app/results/diagnostics/native-n4-seq/bench-native-n4-seq-${POD_ID}
+            export OUTPUT_DIR=/app/results/diagnostics/native-n4-seq-2/bench-native-n4-seq-${POD_ID}
             export EXPERIMENT_MODE="work"
             export PATTERN="sequential"
             
@@ -27,14 +27,14 @@ spec:
             cd /app
 
             # ANCIEN COMPORTEMENT (pas de stagger) : décommenter cette ligne et commenter le bloc STAGGER ci-dessous pour revenir en arrière
-            # python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+            python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
 
             # STAGGER POISSONIEN : décale le démarrage de chaque pod (loi exponentielle, moyenne 60s, plafond 180s)
             # pour éviter que les pods changent de taille de buffer en même temps
-            DELAY=$(awk -v seed="$RANDOM$$" 'BEGIN{srand(seed); d=-log(1-rand())*60; if(d>180) d=180; printf "%.1f", d}')
-            echo "[STAGGER] Sleeping ${DELAY}s before starting (Poisson-like jitter)"
-            sleep "$DELAY"
-            python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
+            # DELAY=$(awk -v seed="$RANDOM$$" 'BEGIN{srand(seed); d=-log(1-rand())*60; if(d>180) d=180; printf "%.1f", d}')
+            # echo "[STAGGER] Sleeping ${DELAY}s before starting (Poisson-like jitter)"
+            # sleep "$DELAY"
+            # python3 scripts/script_controlled.py --output-dir "$OUTPUT_DIR" --pattern "$PATTERN"
             
         securityContext:
           privileged: true

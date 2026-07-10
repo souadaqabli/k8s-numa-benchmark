@@ -18,7 +18,7 @@ spec:
         args:
           - |
             export POD_ID=$(hostname)
-            export OUTPUT_DIR=/app/results/diagnostics/native-n4-rand-2/bench-native-n4-rand-${POD_ID}
+            export OUTPUT_DIR=/app/results/diagnostics/native-n4-rand-3/bench-native-n4-rand-${POD_ID}
             export EXPERIMENT_MODE="work"
             export PATTERN="random"
             
