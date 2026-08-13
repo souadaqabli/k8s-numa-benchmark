@@ -4,6 +4,7 @@ import glob
 import re
 
 def extract_last_run_totals(root_dir, output_filename="total_instructions_work_scalability.csv"):
+#def extract_last_run_totals(root_dir, output_filename="total_instructions_work_scalability_new.csv"):
     mapping = {
         'base': 'baseline', 'baseline': 'baseline',
         'extr': 'extreme', 'extreme': 'extreme',
@@ -114,3 +115,4 @@ def extract_last_run_totals(root_dir, output_filename="total_instructions_work_s
 
 # Exécution
 extract_last_run_totals("/home/sdnuser/sdn2_remote_data", "total_instructions_work_scalability.csv")
+#extract_last_run_totals("/home/sdnuser/sdn2_remote_data/diagnostics", "total_instructions_work_scalability_new.csv")
