@@ -1,0 +1,68 @@
+# native-gemv.yaml
+# Same as native-gemm.yaml, MATMUL_OP="gemv" and a much larger
+# MATMUL_TARGET_MB (GEMV is memory-bandwidth-bound, not compute-bound,
+# so the 10240 MB target used for GEMM would complete in a fraction of a
+# second, dominated by process startup -- see README section 5, "Bug
+# méthodologique découvert et corrigé : cible work-bound inadaptée à GEMV").
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-matmul-native-gemv-n4
+spec:
+  parallelism: 4
+  completions: 4
+  template:
+    metadata:
+      labels:
+        app: bench-matmul-native-gemv-n4
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/matmul/native-gemv/bench-matmul-native-gemv-n4-${POD_ID}
+            export EXPERIMENT_MODE="work"
+            export MATMUL_OP="gemv"
+            export MATMUL_TARGET_MB="500000"
+
+            mkdir -p "$OUTPUT_DIR"
+            echo "--- NO NUMA PINNING (K8S NATIVE) - GEMV ---"
+            cd /app
+
+            # No stagger here: see native-gemm.yaml for the reasoning
+            # (PMU contention risk documented only at N=16, not N=4;
+            # keeping the stagger would inflate duration and break
+            # comparability with the other N=4 scenarios).
+            python3 scripts/script_controlled_matmul.py --output-dir "$OUTPUT_DIR"
+
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled_matmul.py
+          subPath: script_controlled_matmul.py
+        - name: script-python-volume
+          mountPath: /app/scripts/matmul_controlled.py
+          subPath: matmul_controlled.py
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled

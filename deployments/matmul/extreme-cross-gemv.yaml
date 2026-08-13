@@ -1,0 +1,64 @@
+# bench-matmul-excr-n4.yaml
+# Adapté du YAML Extreme-Cross physcpubind fourni : même PHYS_CPU_LIST /
+# MEM_NODE / parallelism (donc même définition du scénario "Extreme-Cross"),
+# seule différence = run_all_matmul.sh au lieu de run_all.sh, + les 3 nouveaux
+# volumeMounts, pas de PATTERN (matmul n'en a pas besoin).
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-matmul-excr-n4
+spec:
+  parallelism: 4
+  completions: 4
+  template:
+    metadata:
+      labels:
+        app: bench-matmul-excr-n4
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/matmul/extreme-cross-gemv/bench-matmul-excr-n4_${POD_ID}
+            export BINDING_MODE="core"
+            export PHYS_CPU_LIST="0,2,4,6"
+            export MEM_NODE="1"
+            export EXPERIMENT_MODE="work"
+            export MATMUL_OP="gemv"
+            export MATMUL_TARGET_MB="500000"
+            bash run_all_matmul.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled_matmul.py
+          subPath: script_controlled_matmul.py
+        - name: script-python-volume
+          mountPath: /app/scripts/matmul_controlled.py
+          subPath: matmul_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all_matmul.sh
+          subPath: run_all_matmul.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled

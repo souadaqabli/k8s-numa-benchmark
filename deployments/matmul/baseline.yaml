@@ -1,0 +1,119 @@
+# bench-matmul-base-n4.yaml
+# Adapté de la version physcpubind (Approche 2) fournie : mêmes PHYS_CPU_LIST /
+# MEM_NODE (donc même définition du scénario "Baseline"), seule différence =
+# run_all_matmul.sh au lieu de run_all.sh, + les 3 nouveaux volumeMounts,
+# pas de PATTERN.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-matmul-base-n4-numa0
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: bench-matmul-base-n4-numa0
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/matmul/baseline/bench-matmul-base-n4-numa0_${POD_ID}
+            export BINDING_MODE="core"
+            export PHYS_CPU_LIST="0,2"
+            export MEM_NODE="0"
+            export EXPERIMENT_MODE="work"
+            bash run_all_matmul.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled_matmul.py
+          subPath: script_controlled_matmul.py
+        - name: script-python-volume
+          mountPath: /app/scripts/matmul_controlled.py
+          subPath: matmul_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all_matmul.sh
+          subPath: run_all_matmul.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-matmul-base-n4-numa1
+spec:
+  parallelism: 2
+  completions: 2
+  template:
+    metadata:
+      labels:
+        app: bench-matmul-base-n4-numa1
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/matmul/baseline/bench-matmul-base-n4-numa1_${POD_ID}
+            export BINDING_MODE="core"
+            export PHYS_CPU_LIST="1,3"
+            export MEM_NODE="1"
+            export EXPERIMENT_MODE="work"
+            bash run_all_matmul.sh
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled_matmul.py
+          subPath: script_controlled_matmul.py
+        - name: script-python-volume
+          mountPath: /app/scripts/matmul_controlled.py
+          subPath: matmul_controlled.py
+        - name: script-python-volume
+          mountPath: /app/run_all_matmul.sh
+          subPath: run_all_matmul.sh
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled

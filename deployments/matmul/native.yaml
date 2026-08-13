@@ -1,0 +1,69 @@
+# native-gemm.yaml
+# No numactl : tests how the native Kubernetes scheduler places GEMM pods,
+# without any NUMA pinning constraint. Mirrors the structure of the
+# existing memory-stress "native" YAML (Poisson stagger, no numactl block),
+# adapted to call script_controlled_matmul.py instead of script_controlled.py.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bench-matmul-native-n4
+spec:
+  parallelism: 4
+  completions: 4
+  template:
+    metadata:
+      labels:
+        app: bench-matmul-native-n4
+    spec:
+      nodeName: sdn2
+      containers:
+      - name: benchmark
+        image: memory-benchmark:v_numa4
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            export POD_ID=$(hostname)
+            export OUTPUT_DIR=/app/results/matmul/native/bench-matmul-native-n4-${POD_ID}
+            export EXPERIMENT_MODE="work"
+            export MATMUL_OP="gemm"
+            export MATMUL_TARGET_MB="10240"
+
+            mkdir -p "$OUTPUT_DIR"
+            echo "--- NO NUMA PINNING (K8S NATIVE) - GEMM ---"
+            cd /app
+
+            # No stagger here: the Poisson jitter used in the memory-stress
+            # native YAML addresses PMU counter contention documented at
+            # N=16, not at N=4. Keeping it here would inflate the measured
+            # duration (up to +180s of pure wait per pod) and make Native
+            # non-comparable to Baseline/Extreme/etc., which start
+            # synchronously with no stagger.
+            python3 scripts/script_controlled_matmul.py --output-dir "$OUTPUT_DIR"
+
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        volumeMounts:
+        - name: results-volume
+          mountPath: /app/results
+        - name: script-python-volume
+          mountPath: /app/scripts/script_controlled_matmul.py
+          subPath: script_controlled_matmul.py
+        - name: script-python-volume
+          mountPath: /app/scripts/matmul_controlled.py
+          subPath: matmul_controlled.py
+      restartPolicy: Never
+      volumes:
+      - name: results-volume
+        hostPath:
+          path: /home/sdnuser/k8s-numa-benchmark/results
+          type: DirectoryOrCreate
+      - name: script-python-volume
+        configMap:
+          name: script-benchmark-controlled
